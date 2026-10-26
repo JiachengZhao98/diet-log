@@ -6,7 +6,7 @@ The live version is a private claude.ai Artifact; its data lives in the Artifact
 
 ## Features
 
-- **Tap to log**: pick Breakfast, Lunch, Dinner or Snack, then tap foods. Each tap adds one serving. A saved meal logs every item at once into its own slot.
+- **Tap to log**: pick Breakfast, Lunch, Dinner or Snack, then tap foods. Each tap adds one serving, and each tile has − / + buttons with the current count. A saved meal logs every item at once into its own slot.
 - **Undo and edit**: every action can be undone. In the log you can change servings (decimals work, e.g. 0.9 of a pasta serving), delete an item, or clear a whole meal.
 - **Nutrition Facts panel**: calories (with a kJ conversion) plus protein, carbs and fat as eaten, target and percent, and protein split by meal.
 - **Training vs. rest days**: chosen by weekday by default; any single day can be switched at the top.

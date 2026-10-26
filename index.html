@@ -165,7 +165,7 @@ button { cursor: pointer; }
 .food:hover { border-color: var(--muted); }
 .food:active { transform: scale(.96); }
 .food.flash { border-color: var(--accent); background: var(--accent-soft); }
-.food-name { font-weight: 700; font-size: 14.5px; line-height: 1.25; padding-right: 26px; overflow-wrap: anywhere; }
+.food-name { font-weight: 700; font-size: 14.5px; line-height: 1.25; overflow-wrap: anywhere; }
 .food-unit { font-size: 12px; color: var(--muted); }
 .food-nums { margin-top: auto; padding-top: 3px; font-size: 12px; color: var(--muted); }
 .food-nums b { color: var(--ink); font-weight: 800; font-size: 14px; }
@@ -175,9 +175,27 @@ button { cursor: pointer; }
   background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 800; display: grid; place-items: center;
 }
 .food.addnew { border-style: dashed; color: var(--muted); justify-content: center; align-items: center; text-align: center; font-weight: 600; background: transparent; }
-.tile { position: relative; display: flex; min-width: 0; }
-.tile > .food { flex: 1; width: 100%; }
-.foods.manage .food { border-style: dashed; }
+.tile {
+  position: relative; display: flex; flex-direction: column; min-width: 0;
+  border: 1px solid var(--line); background: var(--paper); border-radius: 9px; overflow: hidden;
+  transition: border-color .15s ease;
+}
+.tile:hover { border-color: var(--muted); }
+.tile.has { border-color: var(--accent); }
+.tile > .food { flex: 1; width: 100%; border: 0; border-radius: 0; background: transparent; min-height: 64px; }
+.tile > .food:active { transform: none; background: var(--soft); }
+.tile > .food.flash { background: var(--accent-soft); }
+.step { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); }
+.tile.has .step { background: var(--accent-soft); border-top-color: var(--accent); }
+.step button {
+  width: 46px; height: 34px; border: 0; background: transparent; color: var(--accent);
+  font-size: 20px; font-weight: 700; line-height: 1;
+}
+.step button:hover:not(:disabled) { background: var(--soft); }
+.step button:disabled { color: var(--line); cursor: default; }
+.step .cnt { font-weight: 800; font-size: 15px; min-width: 28px; text-align: center; }
+.step .cnt.zero { color: var(--muted); font-weight: 600; }
+.foods.manage .tile { border-style: dashed; }
 .foods.manage .food-name { padding-right: 46px; }
 .rm {
   border: 1px solid var(--over); color: var(--over); background: var(--paper); border-radius: 999px;
@@ -307,7 +325,7 @@ button { cursor: pointer; }
       <div class="slots-hint" id="slotHint"></div>
       <div class="panel-h"><h3 id="presetsH">Meals · log a whole meal in one tap</h3><button class="manage-btn" data-manage aria-pressed="false">Manage</button></div>
       <div class="presets" id="presets"></div>
-      <div class="panel-h"><h3 id="foodsH">Foods · tap to add one serving</h3><button class="manage-btn" data-manage aria-pressed="false">Manage</button></div>
+      <div class="panel-h"><h3 id="foodsH">Foods · tap to add, − / + to adjust</h3><button class="manage-btn" data-manage aria-pressed="false">Manage</button></div>
       <div class="tools">
         <input class="search" id="search" type="search" placeholder="Search foods" autocomplete="off">
       </div>
@@ -480,6 +498,15 @@ button { cursor: pointer; }
     setTimeout(() => { if (state.flashId === id) { state.flashId = null; renderFoods(); } }, 380);
     renderFoods();
   }
+  function minusFood(id) {
+    const hits = state.day.entries.filter((e) => e.food === id && e.meal === state.slot);
+    const e = hits[hits.length - 1];
+    if (!e) return;
+    withUndo(`${slotName(state.slot)}: ${e.name} −1`, () => {
+      if (e.qty > 1) e.qty = r1(e.qty - 1);
+      else state.day.entries = state.day.entries.filter((x) => x.id !== e.id);
+    });
+  }
   function addPreset(id) {
     const pr = state.presets.find((p) => p.id === id);
     if (!pr) return;
@@ -619,12 +646,14 @@ button { cursor: pointer; }
     el.classList.toggle("manage", state.manage);
     let html = list.map((f) => {
       const armed = state.armed && state.armed.kind === "food" && state.armed.id === f.id;
-      return `<div class="tile"><button class="food${state.flashId === f.id ? " flash" : ""}" data-food="${esc(f.id)}"${state.manage ? ` aria-label="Edit ${esc(f.name)}"` : ""}>
+      const n = counts[f.id] || 0;
+      return `<div class="tile${!state.manage && n ? " has" : ""}"><button class="food${state.flashId === f.id ? " flash" : ""}" data-food="${esc(f.id)}"${state.manage ? ` aria-label="Edit ${esc(f.name)}"` : ""}>
         <span class="food-name">${esc(f.name)}</span>
         <span class="food-unit">${esc(f.unit || "1 serving")}</span>
         <span class="food-nums num"><b>${fmt(f.kcal)}</b> kcal · <span class="p">${r1(num(f.p))}g</span> protein</span>
-        ${!state.manage && counts[f.id] ? `<span class="badge num">×${fmtQty(counts[f.id])}</span>` : ""}
-      </button>${state.manage ? `<button class="rm${armed ? " armed" : ""}" data-rmfood="${esc(f.id)}" aria-label="Remove ${esc(f.name)} from foods">${armed ? "Confirm" : "Delete"}</button>` : ""}</div>`;
+      </button>${state.manage
+        ? `<button class="rm${armed ? " armed" : ""}" data-rmfood="${esc(f.id)}" aria-label="Remove ${esc(f.name)} from foods">${armed ? "Confirm" : "Delete"}</button>`
+        : `<div class="step"><button data-minus="${esc(f.id)}" aria-label="One less ${esc(f.name)}"${n ? "" : " disabled"}>−</button><span class="cnt num${n ? "" : " zero"}" aria-live="polite">${fmtQty(n)}</span><button data-plus="${esc(f.id)}" aria-label="One more ${esc(f.name)}">+</button></div>`}</div>`;
     }).join("");
     if (!state.foods.length) html = `<p class="muted" style="grid-column:1/-1">Your food list is empty. Tap "One-off entry" below and check "Also save to my foods" to add the first one.</p>`;
     else if (!list.length) html = `<p class="muted" style="grid-column:1/-1">No match for "${esc(state.q)}".</p>`;
@@ -632,7 +661,7 @@ button { cursor: pointer; }
       ? `<button class="food addnew" id="newFoodBtn">+ New food<br><span class="food-unit">Add to your foods</span></button>`
       : `<button class="food addnew" id="customBtn">+ One-off entry<br><span class="food-unit">Eating out, takeout, anything not listed</span></button>`;
     el.innerHTML = html;
-    $("foodsH").textContent = state.manage ? "Manage foods · tap a food to edit, Delete to remove" : "Foods · tap to add one serving";
+    $("foodsH").textContent = state.manage ? "Manage foods · tap a food to edit, Delete to remove" : "Foods · tap to add, − / + to adjust";
     $("presetsH").textContent = state.manage ? "Manage meals · tap twice to delete" : "Meals · log a whole meal in one tap";
     document.querySelectorAll("[data-manage]").forEach((b) => { b.setAttribute("aria-pressed", String(state.manage)); b.textContent = state.manage ? "Done" : "Manage"; });
   }
@@ -906,6 +935,10 @@ button { cursor: pointer; }
       if (state.armed && state.armed.kind === "food" && state.armed.id === id) confirmRemove("food", id); else arm("food", id);
       return;
     }
+    const plus = e.target.closest("[data-plus]");
+    if (plus) { addFood(plus.dataset.plus); return; }
+    const minus = e.target.closest("[data-minus]");
+    if (minus) { if (!minus.disabled) minusFood(minus.dataset.minus); return; }
     const b = e.target.closest("[data-food]"); if (!b) return;
     if (state.manage) openFoodForm("edit", foodById(b.dataset.food)); else addFood(b.dataset.food);
   });
