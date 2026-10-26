@@ -1,0 +1,957 @@
+<title>Jacob 饮食日志</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+<style>
+/* Layout: sticky date bar; a nutrition-label summary on top, then the tap-to-log picker and the day's log.
+   Two columns from 920px (label + log left, picker right). */
+:root {
+  --bg: #F1F3F0;
+  --paper: #FFFFFF;
+  --ink: #131714;
+  --muted: #5D665F;
+  --line: #D6DBD5;
+  --soft: #E7EBE6;
+  --accent: #17704A;
+  --accent-soft: #DCEFE4;
+  --on-accent: #FFFFFF;
+  --pro: #2B58C4;
+  --carb: #B07A0C;
+  --fat: #B0512D;
+  --over: #C0342A;
+  --toast-accent: #8FE0B5;
+  --font: "Archivo", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1110; --paper: #171B19; --ink: #EAEEEA; --muted: #97A199; --line: #2B312D; --soft: #222825;
+    --accent: #4CBD88; --accent-soft: #1C3328; --on-accent: #08130D;
+    --pro: #7FA3F3; --carb: #E1AF48; --fat: #E2855F; --over: #F26A5E; --toast-accent: #12613F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1110; --paper: #171B19; --ink: #EAEEEA; --muted: #97A199; --line: #2B312D; --soft: #222825;
+  --accent: #4CBD88; --accent-soft: #1C3328; --on-accent: #08130D;
+  --pro: #7FA3F3; --carb: #E1AF48; --fat: #E2855F; --over: #F26A5E; --toast-accent: #12613F;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sheet:focus, .sheet:focus-visible { outline: none; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- top bar ---------- */
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.topbar-in, .wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.topbar-in { display: flex; align-items: center; gap: 8px; padding-block: 10px; flex-wrap: wrap; }
+.datenav { display: flex; align-items: center; gap: 2px; }
+.iconbtn {
+  width: 36px; height: 36px; border-radius: 50%; border: 0; background: transparent;
+  display: grid; place-items: center; font-size: 20px; line-height: 1; color: var(--ink);
+}
+.iconbtn:hover { background: var(--soft); }
+.date-title { font-weight: 800; font-size: 17px; font-stretch: 88%; letter-spacing: 0.01em; padding-inline: 4px; white-space: nowrap; }
+.today-link {
+  border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--muted);
+}
+.daytype { margin-left: auto; display: flex; background: var(--soft); border-radius: 999px; padding: 3px; }
+.daytype button {
+  border: 0; background: transparent; border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: var(--muted);
+}
+.daytype button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.mini { width: 100%; display: flex; gap: 14px; font-size: 12.5px; color: var(--muted); }
+.mini b { color: var(--ink); font-weight: 700; }
+.mini .over { color: var(--over); }
+
+/* ---------- page ---------- */
+.wrap { padding-block: 16px 40px; }
+.grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "facts" "picker" "log" "foot"; }
+.a-facts { grid-area: facts; } .a-picker { grid-area: picker; } .a-log { grid-area: log; } .a-foot { grid-area: foot; }
+@media (min-width: 920px) {
+  .grid {
+    grid-template-columns: minmax(0, 400px) minmax(0, 1fr); align-items: start;
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas: "facts picker" "log picker" "foot picker" ". picker";
+  }
+  .mini { display: none; }
+}
+.notice { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; color: var(--muted); }
+
+/* ---------- nutrition label ---------- */
+.facts { background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; padding: 10px 14px 12px; }
+.facts-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.facts h2 { margin: 0; font-size: 30px; font-weight: 900; font-stretch: 72%; letter-spacing: -0.01em; line-height: 1; }
+.facts-sub { font-size: 12px; color: var(--muted); }
+.rule-xl { height: 9px; background: var(--ink); margin: 8px 0 6px; }
+.rule-m { height: 4px; background: var(--ink); margin: 8px 0 4px; }
+.hair { height: 1px; background: var(--ink); opacity: .35; }
+.energy { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.energy .lbl { font-weight: 900; font-size: 20px; font-stretch: 80%; }
+.energy .kj { font-size: 11.5px; color: var(--muted); }
+.energy-num { text-align: right; }
+.energy-num .big { font-size: 46px; font-weight: 900; font-stretch: 78%; line-height: .95; letter-spacing: -0.02em; }
+.energy-num .of { display: block; font-size: 13px; color: var(--muted); }
+.track { position: relative; height: 8px; background: var(--soft); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+.track i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--ink); transition: width .35s ease; }
+.track.over i { background: var(--over); }
+.remain { margin-top: 6px; font-size: 13.5px; font-weight: 600; }
+.remain.over { color: var(--over); }
+.facts-cols { display: grid; grid-template-columns: 1fr auto 52px; gap: 8px; font-size: 11px; color: var(--muted); padding: 2px 0 4px; letter-spacing: .04em; }
+.facts-cols span:nth-child(n+2) { text-align: right; }
+.mrow { padding: 6px 0 7px; border-top: 1px solid var(--line); }
+.mrow-top { display: grid; grid-template-columns: 1fr auto 52px; gap: 8px; align-items: baseline; }
+.mrow-top .name { font-weight: 800; }
+.mrow-top .val { text-align: right; font-size: 14px; }
+.mrow-top .val b { font-weight: 700; }
+.mrow-top .pct { text-align: right; font-weight: 800; }
+.mrow .track { height: 5px; margin-top: 5px; }
+.mrow.pro .track i { background: var(--pro); }
+.mrow.carb .track i { background: var(--carb); }
+.mrow.fat .track i { background: var(--fat); }
+.mrow .track.over i { background: var(--over); }
+.split { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; padding-top: 2px; }
+.split b { color: var(--ink); font-weight: 700; }
+
+/* ---------- panels ---------- */
+.panel { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.panel-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.panel-h h3 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--muted); }
+.slots { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--soft); border-radius: 10px; padding: 3px; gap: 3px; }
+.slots button { border: 0; background: transparent; border-radius: 8px; padding: 9px 0; font-weight: 700; font-size: 15px; color: var(--muted); }
+.slots button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.slots-hint { font-size: 12.5px; color: var(--muted); margin-top: -4px; }
+
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.preset {
+  border: 1.5px solid var(--accent); background: var(--accent-soft); color: var(--ink);
+  border-radius: 999px; padding: 7px 12px; display: flex; gap: 8px; align-items: baseline; text-align: left;
+}
+.preset b { font-weight: 700; font-size: 14px; }
+.preset span { font-size: 12px; color: var(--muted); }
+.preset:active { transform: scale(.97); }
+
+.tools { display: flex; gap: 8px; align-items: center; }
+.search { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 10px; }
+.cats { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 4px 11px; font-size: 13px; color: var(--muted); }
+.cat[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+
+.foods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 560px) { .foods { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 920px) { .foods { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1080px) { .foods { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.food {
+  position: relative; text-align: left; border: 1px solid var(--line); background: var(--paper); border-radius: 9px;
+  padding: 9px 10px 8px; display: flex; flex-direction: column; gap: 1px; min-height: 74px; min-width: 0;
+  transition: transform .12s ease, border-color .15s ease;
+}
+.food:hover { border-color: var(--muted); }
+.food:active { transform: scale(.96); }
+.food.flash { border-color: var(--accent); background: var(--accent-soft); }
+.food-name { font-weight: 700; font-size: 14.5px; line-height: 1.25; padding-right: 26px; overflow-wrap: anywhere; }
+.food-unit { font-size: 12px; color: var(--muted); }
+.food-nums { margin-top: auto; padding-top: 3px; font-size: 12px; color: var(--muted); }
+.food-nums b { color: var(--ink); font-weight: 800; font-size: 14px; }
+.food-nums .p { color: var(--pro); font-weight: 700; }
+.badge {
+  position: absolute; top: 7px; right: 7px; min-width: 24px; height: 22px; padding: 0 6px; border-radius: 11px;
+  background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 800; display: grid; place-items: center;
+}
+.food.addnew { border-style: dashed; color: var(--muted); justify-content: center; align-items: center; text-align: center; font-weight: 600; background: transparent; }
+.tile { position: relative; display: flex; min-width: 0; }
+.tile > .food { flex: 1; width: 100%; }
+.foods.manage .food { border-style: dashed; }
+.foods.manage .food-name { padding-right: 46px; }
+.rm {
+  border: 1px solid var(--over); color: var(--over); background: var(--paper); border-radius: 999px;
+  font-size: 12px; font-weight: 700; padding: 2px 9px; line-height: 1.5;
+}
+.rm.armed { background: var(--over); color: var(--paper); }
+.tile .rm { position: absolute; top: 6px; right: 6px; }
+.manage-btn { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 3px 11px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.manage-btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.preset.managing { border-style: dashed; border-color: var(--over); background: transparent; }
+.preset .rm-label { color: var(--over); font-weight: 700; font-size: 12px; }
+.preset.armed { background: var(--over); border-color: var(--over); }
+.preset.armed b, .preset.armed .rm-label, .preset.armed span { color: var(--paper); }
+
+/* ---------- log ---------- */
+.meal { display: flex; flex-direction: column; }
+.meal + .meal { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 2px; }
+.meal-h { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding-bottom: 4px; }
+.meal-h b { font-weight: 800; font-size: 15px; }
+.meal-h .sum { font-size: 12.5px; color: var(--muted); }
+.meal-h .acts { margin-left: auto; display: flex; gap: 12px; }
+.link { border: 0; background: transparent; color: var(--accent); font-size: 13px; font-weight: 600; padding: 2px 0; }
+.link.red { color: var(--over); }
+.entry { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 6px; padding: 5px 0; }
+.entry .en { min-width: 0; }
+.entry .en div { font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
+.entry .en small { font-size: 12px; color: var(--muted); }
+.qty { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.qty button { width: 30px; height: 30px; border: 0; background: var(--soft); font-size: 17px; line-height: 1; }
+.qty input { width: 42px; height: 30px; border: 0; text-align: center; background: var(--paper); font-weight: 700; -moz-appearance: textfield; }
+.qty input::-webkit-outer-spin-button, .qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.ekcal { width: 44px; text-align: right; font-weight: 700; font-size: 14px; }
+.del { height: 30px; padding: 0 8px; border: 1px solid var(--line); background: transparent; color: var(--over); border-radius: 8px; font-size: 13px; font-weight: 600; }
+.del:hover { border-color: var(--over); }
+.empty { color: var(--muted); font-size: 14px; padding: 6px 0; }
+
+.footer-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 9px 14px; font-weight: 600; font-size: 14px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.danger { color: var(--over); }
+.btn.danger.armed { background: var(--over); border-color: var(--over); color: var(--paper); }
+
+/* ---------- sheet ---------- */
+.overlay { position: fixed; inset: 0; z-index: 30; background: rgba(10, 14, 12, .45); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  background: var(--paper); width: 100%; max-width: 560px; max-height: 88%; overflow-y: auto;
+  border-radius: 16px 16px 0 0;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  display: flex; flex-direction: column; gap: 14px;
+}
+@media (min-width: 640px) { .overlay { align-items: center; } .sheet { border-radius: 14px; padding-bottom: 20px; } }
+.sheet-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sheet-h h3 { margin: 0; font-size: 20px; font-weight: 900; font-stretch: 80%; }
+.form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.form .full { grid-column: 1 / -1; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .03em; }
+.field input, .field select { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 9px 10px; width: 100%; min-width: 0; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.sheet-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.sheet-actions .spacer { flex: 1; }
+.sec-h { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); margin: 4px 0 -4px; }
+.tgt { display: grid; grid-template-columns: 60px repeat(4, minmax(0, 1fr)); gap: 6px; align-items: center; }
+.tgt .h { font-size: 11px; color: var(--muted); text-align: center; }
+.tgt .rl { font-weight: 700; font-size: 13px; }
+.tgt input { border: 1px solid var(--line); background: var(--bg); border-radius: 7px; padding: 7px 4px; width: 100%; min-width: 0; text-align: center; }
+.weekdays { display: flex; gap: 6px; flex-wrap: wrap; }
+.weekdays button { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: transparent; font-weight: 700; }
+.weekdays button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.list { display: flex; flex-direction: column; }
+.li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+.li-acts { display: flex; gap: 6px; }
+.li .t { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.li small { display: block; font-size: 12px; color: var(--muted); }
+.li .k { font-size: 13px; color: var(--muted); }
+.muted { color: var(--muted); font-size: 13px; margin: 0; }
+
+/* history */
+.hist-sum { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.stat { background: var(--bg); border-radius: 9px; padding: 10px 12px; }
+.stat small { display: block; font-size: 12px; color: var(--muted); }
+.stat b { font-size: 24px; font-weight: 900; font-stretch: 80%; }
+.hrow { display: grid; grid-template-columns: 74px minmax(0, 1fr) 62px; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); border-left: 0; border-right: 0; border-bottom: 0; background: transparent; text-align: left; width: 100%; }
+.hrow .d { font-size: 13px; font-weight: 700; }
+.hrow .d small { display: block; font-weight: 500; color: var(--muted); font-size: 11.5px; }
+.hbar { position: relative; height: 12px; background: var(--soft); border-radius: 3px; }
+.hbar i { position: absolute; inset: 0 auto 0 0; background: var(--ink); border-radius: 3px; }
+.hbar i.over { background: var(--over); }
+.hbar .tick { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--accent); }
+.hrow .v { text-align: right; font-size: 12.5px; }
+.hrow .v b { display: block; font-size: 14px; }
+.hrow .v span { color: var(--pro); }
+
+/* toast */
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 40;
+  background: var(--ink); color: var(--bg); border-radius: 10px; padding: 10px 12px 10px 14px; display: flex; gap: 14px; align-items: center;
+  width: max-content; max-width: calc(100% - 32px); font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.2);
+}
+.toast button { border: 0; background: transparent; color: var(--toast-accent); font-weight: 800; padding: 4px 2px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } .food:active, .preset:active { transform: none; } }
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="datenav">
+      <button class="iconbtn" id="prevDay" aria-label="前一天">‹</button>
+      <span class="date-title" id="dateTitle">今天</span>
+      <button class="iconbtn" id="nextDay" aria-label="后一天">›</button>
+      <button class="today-link" id="todayBtn" hidden>回到今天</button>
+    </div>
+    <div class="daytype" role="group" aria-label="今天是训练日还是休息日">
+      <button id="dtTrain" aria-pressed="false">训练日</button>
+      <button id="dtRest" aria-pressed="true">休息日</button>
+    </div>
+    <div class="mini num" id="mini"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="notice" id="noDb" hidden>这个页面需要在 claude.ai 里登录后打开，才能读写你的记录。</div>
+  <div class="grid">
+    <section class="facts a-facts" id="facts" aria-label="今日营养汇总"></section>
+    <section class="panel a-picker" aria-label="点选记录">
+      <div class="slots" role="group" aria-label="记到哪一餐" id="slots"></div>
+      <div class="slots-hint" id="slotHint"></div>
+      <div class="panel-h"><h3 id="presetsH">套餐 · 一键记整顿</h3><button class="manage-btn" data-manage aria-pressed="false">管理</button></div>
+      <div class="presets" id="presets"></div>
+      <div class="panel-h"><h3 id="foodsH">常吃食物 · 点一下加一份</h3><button class="manage-btn" data-manage aria-pressed="false">管理</button></div>
+      <div class="tools">
+        <input class="search" id="search" type="search" placeholder="搜索食物" autocomplete="off">
+      </div>
+      <div class="cats" id="cats"></div>
+      <div class="foods" id="foods"></div>
+    </section>
+    <section class="panel a-log" id="logPanel" aria-label="今天吃了什么">
+      <div class="panel-h"><h3>记录</h3><span class="muted num" id="logCount"></span></div>
+      <div id="log"></div>
+    </section>
+    <div class="footer-actions a-foot">
+      <button class="btn" id="openHistory">近 14 天</button>
+      <button class="btn" id="openSettings">目标与食物库</button>
+    </div>
+  </div>
+</main>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+</div>
+<div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastUndo">撤销</button></div>
+
+<script>
+(() => {
+  const SLOTS = [
+    { id: "b", name: "早餐" }, { id: "l", name: "午餐" }, { id: "d", name: "晚餐" }, { id: "s", name: "加餐" },
+  ];
+  const CATS = ["蛋奶", "肉海鲜", "主食", "蔬果", "零食补剂", "调料油", "外食", "其他"];
+  const WD = ["日", "一", "二", "三", "四", "五", "六"];
+  const DEFAULT_TARGETS = {
+    train: { kcal: 2200, p: 145, c: 290, f: 50 },
+    rest: { kcal: 1780, p: 145, c: 130, f: 80 },
+    trainDays: [0, 4],
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const r1 = (n) => Math.round(n * 10) / 10;
+  const fmt = (n) => Math.round(n).toLocaleString("en-US");
+  const fmtQty = (q) => (Number.isInteger(q) ? String(q) : String(r1(q)));
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const fmtDate = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const parseDate = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+  const shiftDate = (s, n) => { const d = parseDate(s); d.setDate(d.getDate() + n); return fmtDate(d); };
+  const todayStr = () => fmtDate(new Date());
+  const dateLabel = (s) => { const d = parseDate(s); return `${d.getMonth() + 1}月${d.getDate()}日 周${WD[d.getDay()]}`; };
+  const slotName = (id) => (SLOTS.find((s) => s.id === id) || SLOTS[3]).name;
+  const num = (v, d = 0) => { const n = parseFloat(v); return Number.isFinite(n) ? n : d; };
+
+  function autoSlot() {
+    const h = new Date().getHours() + new Date().getMinutes() / 60;
+    if (h < 10.5) return "b";
+    if (h < 14) return "l";
+    if (h < 17) return "s";
+    if (h < 21.5) return "d";
+    return "s";
+  }
+  const emptyDay = (date) => ({ date, dayType: null, entries: [] });
+
+  const state = {
+    db: null, noDb: false,
+    foods: [], foodsLoaded: false,
+    presets: [],
+    targets: clone(DEFAULT_TARGETS),
+    date: todayStr(),
+    day: emptyDay(todayStr()),
+    dayLoaded: false,
+    slot: autoSlot(),
+    cat: "全部",
+    q: "",
+    flashId: null,
+    manage: false,
+    armed: null,
+  };
+
+  /* ---------- derived ---------- */
+  const dayTypeOf = (day) => day.dayType || (state.targets.trainDays.includes(parseDate(day.date).getDay()) ? "train" : "rest");
+  const targetOf = (day) => state.targets[dayTypeOf(day)] || DEFAULT_TARGETS[dayTypeOf(day)];
+  const totals = (entries) => entries.reduce((a, e) => {
+    a.kcal += e.kcal * e.qty; a.p += e.p * e.qty; a.c += e.c * e.qty; a.f += e.f * e.qty; return a;
+  }, { kcal: 0, p: 0, c: 0, f: 0 });
+  const foodById = (id) => state.foods.find((f) => f.id === id);
+
+  /* ---------- day persistence: one serialized write at a time ---------- */
+  let flushTimer = null, writing = false, dirty = false, chain = Promise.resolve(), unsubDay = null;
+
+  function commitDay() {
+    dirty = true;
+    render();
+    clearTimeout(flushTimer);
+    flushTimer = setTimeout(flush, 400);
+  }
+  function flush() {
+    clearTimeout(flushTimer); flushTimer = null;
+    chain = chain.then(writeDay);
+    return chain;
+  }
+  async function writeDay() {
+    if (!dirty || !state.db) return;
+    dirty = false;
+    const body = clone(state.day);
+    body.updated = Date.now();
+    writing = true;
+    try {
+      await state.db.doc("days/" + body.date).set(body);
+    } catch (e) {
+      if (body.date === state.day.date) dirty = true;
+      const code = (e && e.code) || "error";
+      if (code === "unavailable") setTimeout(flush, 1200 + Math.random() * 1200);
+      else if (code === "quota_exceeded") toast("存储已满，这条没有保存。删掉一些旧记录后再试。");
+      else toast("这次没保存上，下次改动时会再试一次。");
+    } finally {
+      writing = false;
+    }
+  }
+  function subscribeDay() {
+    if (!state.db) return;
+    const d = state.date;
+    if (unsubDay) unsubDay();
+    unsubDay = state.db.doc("days/" + d).onSnapshot((snap) => {
+      if (state.date !== d) return;
+      if (dirty || writing || flushTimer) return;
+      state.day = snap.exists ? Object.assign(emptyDay(d), clone(snap.data())) : emptyDay(d);
+      if (!Array.isArray(state.day.entries)) state.day.entries = [];
+      state.dayLoaded = true;
+      render();
+    }, () => { state.dayLoaded = true; render(); });
+  }
+  async function goDate(d) {
+    if (d === state.date) return;
+    await flush();
+    hideToast();
+    state.date = d;
+    state.day = emptyDay(d);
+    state.dayLoaded = false;
+    if (d === todayStr()) state.slot = autoSlot();
+    render();
+    subscribeDay();
+  }
+
+  /* ---------- actions ---------- */
+  function withUndo(msg, mutate) {
+    const date = state.date;
+    const before = clone(state.day.entries);
+    mutate();
+    commitDay();
+    toast(msg, () => {
+      if (state.date !== date) return;
+      state.day.entries = before;
+      commitDay();
+    });
+  }
+  function pushFood(food, qty, slot) {
+    const hit = state.day.entries.find((e) => e.food === food.id && e.meal === slot);
+    if (hit) { hit.qty = r1(hit.qty + qty); return; }
+    state.day.entries.push({
+      id: uid(), food: food.id, name: food.name, unit: food.unit || "",
+      qty: r1(qty), kcal: num(food.kcal), p: num(food.p), c: num(food.c), f: num(food.f),
+      meal: slot, t: Date.now(),
+    });
+  }
+  function addFood(id) {
+    const food = foodById(id);
+    if (!food) return;
+    withUndo(`${slotName(state.slot)}：${food.name} +1`, () => pushFood(food, 1, state.slot));
+    state.flashId = id;
+    setTimeout(() => { if (state.flashId === id) { state.flashId = null; renderFoods(); } }, 380);
+    renderFoods();
+  }
+  function addPreset(id) {
+    const pr = state.presets.find((p) => p.id === id);
+    if (!pr) return;
+    const slot = pr.slot || state.slot;
+    let missing = 0;
+    withUndo(`${slotName(slot)}：${pr.name}`, () => {
+      (pr.items || []).forEach((it) => {
+        const food = foodById(it.food);
+        if (food) pushFood(food, num(it.qty, 1), slot); else missing++;
+      });
+    });
+    if (missing) toast(`${pr.name} 里有 ${missing} 样食物已被删掉，没有记上`);
+  }
+  function setQty(entryId, q) {
+    const e = state.day.entries.find((x) => x.id === entryId);
+    if (!e) return;
+    if (!(q > 0)) { render(); return; }
+    e.qty = r1(q);
+    commitDay();
+  }
+  function removeEntry(entryId) {
+    const e = state.day.entries.find((x) => x.id === entryId);
+    if (!e) return;
+    withUndo(`已删除 ${e.name}`, () => { state.day.entries = state.day.entries.filter((x) => x.id !== entryId); });
+  }
+  function setDayType(t) {
+    state.day.dayType = t;
+    commitDay();
+  }
+
+  /* ---------- render ---------- */
+  function render() {
+    renderTop(); renderFacts(); renderSlots(); renderPresets(); renderCats(); renderFoods(); renderLog();
+  }
+  function renderTop() {
+    const isToday = state.date === todayStr();
+    $("dateTitle").textContent = (isToday ? "今天 · " : "") + dateLabel(state.date);
+    $("todayBtn").hidden = isToday;
+    $("nextDay").disabled = state.date >= todayStr();
+    $("nextDay").style.opacity = state.date >= todayStr() ? ".3" : "1";
+    const t = dayTypeOf(state.day);
+    $("dtTrain").setAttribute("aria-pressed", String(t === "train"));
+    $("dtRest").setAttribute("aria-pressed", String(t === "rest"));
+    const tot = totals(state.day.entries), tg = targetOf(state.day);
+    const left = tg.kcal - tot.kcal;
+    $("mini").innerHTML =
+      `<span>${left >= 0 ? `还剩 <b>${fmt(left)}</b> kcal` : `<span class="over">超出 <b class="over">${fmt(-left)}</b> kcal</span>`}</span>` +
+      `<span>蛋白 <b>${fmt(tot.p)}</b> / ${fmt(tg.p)} g</span>`;
+  }
+  function pct(v, t) { return t > 0 ? Math.round((v / t) * 100) : 0; }
+  function macroRow(cls, name, v, t) {
+    const p = pct(v, t), over = v > t * 1.05 && cls !== "pro";
+    return `<div class="mrow ${cls}">
+      <div class="mrow-top"><span class="name">${name}</span><span class="val num"><b>${fmt(v)}</b> / ${fmt(t)} g</span><span class="pct num">${p}%</span></div>
+      <div class="track${over ? " over" : ""}"><i style="width:${Math.min(100, p)}%"></i></div></div>`;
+  }
+  function renderFacts() {
+    const tot = totals(state.day.entries), tg = targetOf(state.day), t = dayTypeOf(state.day);
+    const left = tg.kcal - tot.kcal, p = pct(tot.kcal, tg.kcal);
+    const bySlot = SLOTS.map((s) => {
+      const st = totals(state.day.entries.filter((e) => e.meal === s.id));
+      return `<span>${s.name.slice(0, 1)} <b class="num">${st.p ? fmt(st.p) + " g" : "–"}</b></span>`;
+    }).join("");
+    $("facts").innerHTML = `
+      <div class="facts-head"><h2>营养成分表</h2><span class="facts-sub">${t === "train" ? "训练日" : "休息日"}目标 · ${state.day.entries.length} 项</span></div>
+      <div class="rule-xl"></div>
+      <div class="energy">
+        <div><div class="lbl">能量</div><div class="kj num">≈ ${fmt(tot.kcal * 4.184)} kJ</div></div>
+        <div class="energy-num num"><span class="big">${fmt(tot.kcal)}</span><span class="of">/ ${fmt(tg.kcal)} kcal · ${p}%</span></div>
+      </div>
+      <div class="track${left < 0 ? " over" : ""}"><i style="width:${Math.min(100, p)}%"></i></div>
+      <div class="remain num${left < 0 ? " over" : ""}">${left >= 0 ? `还可以吃 ${fmt(left)} kcal` : `超出 ${fmt(-left)} kcal`}</div>
+      <div class="rule-m"></div>
+      <div class="facts-cols"><span>项目</span><span>已摄入 / 目标</span><span>占比</span></div>
+      ${macroRow("pro", "蛋白质", tot.p, tg.p)}
+      ${macroRow("carb", "碳水", tot.c, tg.c)}
+      ${macroRow("fat", "脂肪", tot.f, tg.f)}
+      <div class="rule-m" style="height:2px"></div>
+      <div class="split">蛋白分布 ${bySlot}</div>`;
+  }
+  function renderSlots() {
+    $("slots").innerHTML = SLOTS.map((s) => `<button data-slot="${s.id}" aria-pressed="${s.id === state.slot}">${s.name}</button>`).join("");
+    $("slotHint").textContent = `点下面的食物，会记到「${slotName(state.slot)}」。套餐会记到它自己的那一餐。`;
+  }
+  function presetKcal(pr) {
+    return (pr.items || []).reduce((a, it) => { const f = foodById(it.food); return f ? { k: a.k + f.kcal * it.qty, p: a.p + f.p * it.qty } : a; }, { k: 0, p: 0 });
+  }
+  function renderPresets() {
+    const el = $("presets");
+    if (!state.presets.length) {
+      el.innerHTML = `<p class="muted">还没有套餐。在下方记录里点某一餐的「存为套餐」，以后就能一键记整顿。</p>`;
+      return;
+    }
+    el.innerHTML = state.presets.map((pr) => {
+      const s = presetKcal(pr);
+      if (state.manage) {
+        const armed = state.armed && state.armed.kind === "preset" && state.armed.id === pr.id;
+        return `<button class="preset managing${armed ? " armed" : ""}" data-rmpreset="${esc(pr.id)}" aria-label="删除套餐 ${esc(pr.name)}"><b>${esc(pr.name)}</b><span class="rm-label">${armed ? "再点一次删除" : "删除"}</span></button>`;
+      }
+      return `<button class="preset" data-preset="${esc(pr.id)}"><b>${esc(pr.name)}</b><span class="num">${fmt(s.k)} kcal · ${fmt(s.p)}g 蛋白</span></button>`;
+    }).join("");
+  }
+  /* two-tap delete for foods and presets in manage mode */
+  let armTimer = null;
+  function arm(kind, id) {
+    state.armed = { kind, id };
+    clearTimeout(armTimer);
+    armTimer = setTimeout(() => { state.armed = null; renderPresets(); renderFoods(); }, 3500);
+    renderPresets(); renderFoods();
+  }
+  async function confirmRemove(kind, id) {
+    clearTimeout(armTimer);
+    state.armed = null;
+    const name = kind === "food" ? (foodById(id) || {}).name : (state.presets.find((p) => p.id === id) || {}).name;
+    try {
+      await state.db.doc((kind === "food" ? "foods/" : "presets/") + id).delete();
+      if (kind === "food") state.foods = state.foods.filter((f) => f.id !== id);
+      else state.presets = state.presets.filter((p) => p.id !== id);
+      toast(kind === "food" ? `已从食物库删除 ${name}（已记的记录不受影响）` : `已删除套餐 ${name}`);
+    } catch (e) {
+      toast("删除失败，请稍后再试");
+    }
+    renderCats(); renderPresets(); renderFoods();
+  }
+  function renderCats() {
+    const present = CATS.filter((c) => state.foods.some((f) => (f.cat || "其他") === c));
+    $("cats").innerHTML = ["全部", ...present].map((c) => `<button class="cat" data-cat="${esc(c)}" aria-pressed="${c === state.cat}">${esc(c)}</button>`).join("");
+  }
+  function renderFoods() {
+    const el = $("foods");
+    if (state.noDb) { el.innerHTML = ""; return; }
+    if (!state.foodsLoaded) { el.innerHTML = `<p class="muted">正在读取食物库…</p>`; return; }
+    const q = state.q.trim().toLowerCase();
+    const list = state.foods.filter((f) => (state.cat === "全部" || (f.cat || "其他") === state.cat) && (!q || (f.name + " " + (f.unit || "")).toLowerCase().includes(q)));
+    const counts = {};
+    state.day.entries.forEach((e) => { if (e.meal === state.slot && e.food) counts[e.food] = (counts[e.food] || 0) + e.qty; });
+    el.classList.toggle("manage", state.manage);
+    let html = list.map((f) => {
+      const armed = state.armed && state.armed.kind === "food" && state.armed.id === f.id;
+      return `<div class="tile"><button class="food${state.flashId === f.id ? " flash" : ""}" data-food="${esc(f.id)}"${state.manage ? ` aria-label="编辑 ${esc(f.name)}"` : ""}>
+        <span class="food-name">${esc(f.name)}</span>
+        <span class="food-unit">${esc(f.unit || "1 份")}</span>
+        <span class="food-nums num"><b>${fmt(f.kcal)}</b> kcal · <span class="p">${r1(num(f.p))}g</span> 蛋白</span>
+        ${!state.manage && counts[f.id] ? `<span class="badge num">×${fmtQty(counts[f.id])}</span>` : ""}
+      </button>${state.manage ? `<button class="rm${armed ? " armed" : ""}" data-rmfood="${esc(f.id)}" aria-label="从食物库删除 ${esc(f.name)}">${armed ? "确认" : "删除"}</button>` : ""}</div>`;
+    }).join("");
+    if (!state.foods.length) html = `<p class="muted" style="grid-column:1/-1">食物库还是空的。点下面「一次性记录」，勾选「存进常吃食物」就能加第一样。</p>`;
+    else if (!list.length) html = `<p class="muted" style="grid-column:1/-1">没有找到「${esc(state.q)}」。</p>`;
+    html += state.manage
+      ? `<button class="food addnew" id="newFoodBtn">＋ 新食物<br><span class="food-unit">加进常吃食物</span></button>`
+      : `<button class="food addnew" id="customBtn">＋ 一次性记录<br><span class="food-unit">聚餐、外卖、没在列表里的</span></button>`;
+    el.innerHTML = html;
+    $("foodsH").textContent = state.manage ? "管理食物 · 点食物编辑，点「删除」移除" : "常吃食物 · 点一下加一份";
+    $("presetsH").textContent = state.manage ? "管理套餐 · 点两下删除" : "套餐 · 一键记整顿";
+    document.querySelectorAll("[data-manage]").forEach((b) => { b.setAttribute("aria-pressed", String(state.manage)); b.textContent = state.manage ? "完成" : "管理"; });
+  }
+  function renderLog() {
+    const el = $("log");
+    $("logCount").textContent = state.day.entries.length ? `${state.day.entries.length} 项` : "";
+    if (state.noDb) { el.innerHTML = ""; return; }
+    if (!state.dayLoaded && state.db) { el.innerHTML = `<p class="empty">读取中…</p>`; return; }
+    const groups = SLOTS.map((s) => ({ s, items: state.day.entries.filter((e) => e.meal === s.id) })).filter((g) => g.items.length);
+    if (!groups.length) {
+      el.innerHTML = `<p class="empty">${state.date === todayStr() ? "今天" : "这天"}还没有记录。点套餐或常吃食物，就会记到「${slotName(state.slot)}」。</p>`;
+      return;
+    }
+    el.innerHTML = groups.map(({ s, items }) => {
+      const st = totals(items);
+      return `<div class="meal">
+        <div class="meal-h"><b>${s.name}</b><span class="sum num">${fmt(st.kcal)} kcal · ${fmt(st.p)}g 蛋白</span>
+          <span class="acts"><button class="link" data-savepreset="${s.id}">存为套餐</button><button class="link red" data-clearmeal="${s.id}">清空这餐</button></span></div>
+        ${items.map((e) => `<div class="entry">
+          <div class="en"><div>${esc(e.name)}</div><small class="num">${esc(e.unit || "1 份")} · ${fmt(e.kcal)} kcal · ${r1(e.p)}g 蛋白</small></div>
+          <div class="qty"><button data-dec="${e.id}" aria-label="减少">−</button><input class="num" id="q-${e.id}" type="number" inputmode="decimal" step="0.1" min="0.1" value="${fmtQty(e.qty)}" data-qty="${e.id}" aria-label="份数"><button data-inc="${e.id}" aria-label="增加">+</button></div>
+          <div class="ekcal num">${fmt(e.kcal * e.qty)}</div>
+          <button class="del" data-del="${e.id}" aria-label="删除 ${esc(e.name)}">删除</button>
+        </div>`).join("")}
+      </div>`;
+    }).join("");
+  }
+
+  /* ---------- toast ---------- */
+  let toastTimer = null, undoFn = null;
+  function toast(msg, undo) {
+    $("toastMsg").textContent = msg;
+    undoFn = undo || null;
+    $("toastUndo").hidden = !undo;
+    $("toast").hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, undo ? 4500 : 3500);
+  }
+  function hideToast() { $("toast").hidden = true; undoFn = null; }
+  $("toastUndo").addEventListener("click", () => { const f = undoFn; hideToast(); if (f) f(); });
+
+  /* ---------- sheets ---------- */
+  let sheetMode = null, returnTo = null;
+  function openSheet(html, mode) {
+    sheetMode = mode;
+    $("sheet").innerHTML = html;
+    $("overlay").hidden = false;
+    const coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    const first = $("sheet").querySelector("input, select, button.btn");
+    setTimeout(() => {
+      if (!coarse && first && mode !== "history") first.focus({ preventScroll: true });
+      else $("sheet").focus({ preventScroll: true });
+    }, 30);
+  }
+  function closeSheet() {
+    $("overlay").hidden = true; $("sheet").innerHTML = ""; sheetMode = null;
+    if (returnTo) { const r = returnTo; returnTo = null; r(); }
+  }
+  $("overlay").addEventListener("click", (e) => { if (e.target === $("overlay")) { returnTo = null; closeSheet(); } });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("overlay").hidden) { returnTo = null; closeSheet(); } });
+  const sheetHead = (title) => `<div class="sheet-h"><h3>${title}</h3><button class="iconbtn" data-close aria-label="关闭">×</button></div>`;
+  const catOptions = (sel) => CATS.map((c) => `<option value="${c}"${c === sel ? " selected" : ""}>${c}</option>`).join("");
+
+  // food form: mode "new" | "edit" | "once"
+  function openFoodForm(mode, food, back) {
+    const f = food || { name: "", unit: mode === "once" ? "1 份" : "", kcal: "", p: "", c: "", f: "", cat: "其他" };
+    returnTo = back || null;
+    const title = mode === "edit" ? "编辑食物" : mode === "new" ? "新食物" : "一次性记录";
+    openSheet(`${sheetHead(title)}
+      <form class="form" id="foodForm" novalidate>
+        <div class="field full"><label for="ff-name">名称</label><input id="ff-name" required value="${esc(f.name)}" placeholder="例如：韩式烤肉聚餐"></div>
+        <div class="field"><label for="ff-unit">一份是多少</label><input id="ff-unit" value="${esc(f.unit)}" placeholder="1 份 / 200 ml / 100 g"></div>
+        <div class="field"><label for="ff-cat">分类</label><select id="ff-cat">${catOptions(f.cat || "其他")}</select></div>
+        <div class="field"><label for="ff-kcal">热量 kcal</label><input id="ff-kcal" type="number" inputmode="decimal" value="${esc(f.kcal)}"></div>
+        <div class="field"><label for="ff-p">蛋白质 g</label><input id="ff-p" type="number" inputmode="decimal" value="${esc(f.p)}"></div>
+        <div class="field"><label for="ff-c">碳水 g</label><input id="ff-c" type="number" inputmode="decimal" value="${esc(f.c)}"></div>
+        <div class="field"><label for="ff-f">脂肪 g</label><input id="ff-f" type="number" inputmode="decimal" value="${esc(f.f)}"></div>
+        ${mode === "once" ? `<label class="check full"><input type="checkbox" id="ff-save"> 同时存进常吃食物</label>` : ""}
+        <p class="muted full" id="ff-err" hidden></p>
+        <div class="sheet-actions full">
+          ${mode === "edit" ? `<button type="button" class="btn danger" id="ff-del">删除</button>` : ""}
+          <span class="spacer"></span>
+          <button type="button" class="btn" data-close>取消</button>
+          <button type="submit" class="btn primary">${mode === "once" ? `记到${slotName(state.slot)}` : "保存"}</button>
+        </div>
+      </form>`, "food");
+    const form = $("foodForm");
+    form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const data = {
+        name: $("ff-name").value.trim(), unit: $("ff-unit").value.trim() || "1 份", cat: $("ff-cat").value,
+        kcal: num($("ff-kcal").value), p: num($("ff-p").value), c: num($("ff-c").value), f: num($("ff-f").value),
+      };
+      const err = $("ff-err");
+      if (!data.name) { err.hidden = false; err.textContent = "请填一个名称。"; return; }
+      if (!(data.kcal > 0)) { err.hidden = false; err.textContent = "请填热量（大于 0）。"; return; }
+      if (mode === "once") {
+        let food = { id: null, ...data };
+        if ($("ff-save").checked) {
+          const id = "f-" + uid();
+          data.sort = 900 + state.foods.length;
+          try { await state.db.doc("foods/" + id).set(data); food.id = id; }
+          catch (e) { err.hidden = false; err.textContent = "存进食物库失败，这次只记一次。"; }
+        }
+        state.day.entries.push({ id: uid(), food: food.id, name: data.name, unit: data.unit, qty: 1, kcal: data.kcal, p: data.p, c: data.c, f: data.f, meal: state.slot, t: Date.now() });
+        commitDay();
+        returnTo = null; closeSheet();
+        toast(`${slotName(state.slot)}：${data.name}`);
+        return;
+      }
+      const id = mode === "edit" ? food.id : "f-" + uid();
+      data.sort = mode === "edit" ? num(food.sort, 500) : 900 + state.foods.length;
+      try { await state.db.doc("foods/" + id).set(data); closeSheet(); toast(mode === "edit" ? "已保存" : `已加入食物库：${data.name}`); }
+      catch (e) { err.hidden = false; err.textContent = "没保存上，请稍后再试。"; }
+    });
+    const del = $("ff-del");
+    if (del) del.addEventListener("click", async () => {
+      if (!del.classList.contains("armed")) { del.classList.add("armed"); del.textContent = "再点一次删除"; return; }
+      try { await state.db.doc("foods/" + food.id).delete(); closeSheet(); toast(`已从食物库删除 ${food.name}（已记的记录不受影响）`); }
+      catch (e) { $("ff-err").hidden = false; $("ff-err").textContent = "删除失败，请稍后再试。"; }
+    });
+  }
+
+  function openPresetForm(slotId) {
+    const items = state.day.entries.filter((e) => e.meal === slotId);
+    const saved = items.filter((e) => e.food && foodById(e.food));
+    const skipped = items.length - saved.length;
+    openSheet(`${sheetHead("存为套餐")}
+      <form class="form" id="presetForm" novalidate>
+        <div class="field"><label for="pf-name">套餐名</label><input id="pf-name" value="我的${slotName(slotId)}"></div>
+        <div class="field"><label for="pf-slot">记到</label><select id="pf-slot">${SLOTS.map((s) => `<option value="${s.id}"${s.id === slotId ? " selected" : ""}>${s.name}</option>`).join("")}</select></div>
+        <div class="list full">${saved.map((e) => `<div class="li"><div class="t">${esc(e.name)}<small>${esc(e.unit)}</small></div><span class="k num">×${fmtQty(e.qty)}</span><span class="k num">${fmt(e.kcal * e.qty)}</span></div>`).join("")}</div>
+        ${skipped ? `<p class="muted full">有 ${skipped} 项是一次性记录，不在食物库里，不会放进套餐。</p>` : ""}
+        <p class="muted full" id="pf-err" hidden></p>
+        <div class="sheet-actions full"><span class="spacer"></span><button type="button" class="btn" data-close>取消</button><button type="submit" class="btn primary"${saved.length ? "" : " disabled"}>保存套餐</button></div>
+      </form>`, "preset");
+    $("presetForm").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const name = $("pf-name").value.trim();
+      if (!name) { $("pf-err").hidden = false; $("pf-err").textContent = "请填套餐名。"; return; }
+      const data = { name, slot: $("pf-slot").value, items: saved.map((e) => ({ food: e.food, qty: e.qty })), sort: 900 + state.presets.length };
+      try { await state.db.doc("presets/p-" + uid()).set(data); closeSheet(); toast(`已存为套餐：${name}`); }
+      catch (e) { $("pf-err").hidden = false; $("pf-err").textContent = "没保存上，请稍后再试。"; }
+    });
+  }
+
+  function openSettings() {
+    const T = state.targets;
+    const trow = (key, label) => `<span class="rl">${label}</span>` + ["kcal", "p", "c", "f"].map((k) => `<input class="num" type="number" inputmode="decimal" id="t-${key}-${k}" value="${esc(T[key][k])}" aria-label="${label} ${k}">`).join("");
+    const days = T.trainDays.slice();
+    openSheet(`${sheetHead("目标与食物库")}
+      <div class="sec-h">每日目标</div>
+      <div class="tgt"><span></span><span class="h">kcal</span><span class="h">蛋白 g</span><span class="h">碳水 g</span><span class="h">脂肪 g</span>
+        ${trow("train", "训练日")}${trow("rest", "休息日")}</div>
+      <div class="sec-h">默认训练日（某天可以在顶部单独切换）</div>
+      <div class="weekdays" id="wd">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-wd="${d}" aria-pressed="${days.includes(d)}">${WD[d]}</button>`).join("")}</div>
+      <div class="sheet-actions"><span class="spacer"></span><button class="btn primary" id="saveTargets">保存目标</button></div>
+      <div class="sec-h">套餐</div>
+      <div class="list">${state.presets.length ? state.presets.map((p) => { const s = presetKcal(p); return `<div class="li"><div class="t">${esc(p.name)}<small>${slotName(p.slot)} · ${(p.items || []).map((it) => { const f = foodById(it.food); return f ? esc(f.name) + "×" + fmtQty(it.qty) : "（已删）"; }).join("、")}</small></div><span class="k num">${fmt(s.k)}</span><button class="btn danger" data-delpreset="${esc(p.id)}">删除</button></div>`; }).join("") : `<p class="muted">还没有套餐。</p>`}</div>
+      <div class="sec-h">常吃食物（${state.foods.length}）</div>
+      <div class="sheet-actions"><button class="btn" id="newFood">＋ 新食物</button></div>
+      <div class="list">${state.foods.map((f) => `<div class="li"><div class="t">${esc(f.name)}<small>${esc(f.unit)} · ${esc(f.cat || "其他")}</small></div><span class="k num">${fmt(f.kcal)} kcal</span><span class="li-acts"><button class="btn" data-editfood="${esc(f.id)}">编辑</button><button class="btn danger" data-delfood="${esc(f.id)}">删除</button></span></div>`).join("")}</div>`, "settings");
+    $("wd").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-wd]"); if (!b) return;
+      const d = Number(b.dataset.wd); const i = days.indexOf(d);
+      if (i >= 0) days.splice(i, 1); else days.push(d);
+      b.setAttribute("aria-pressed", String(days.includes(d)));
+    });
+    $("saveTargets").addEventListener("click", async () => {
+      const read = (key) => ({ kcal: num($(`t-${key}-kcal`).value), p: num($(`t-${key}-p`).value), c: num($(`t-${key}-c`).value), f: num($(`t-${key}-f`).value) });
+      const data = { train: read("train"), rest: read("rest"), trainDays: days.slice().sort() };
+      try { await state.db.doc("settings/targets").set(data); toast("目标已保存"); }
+      catch (e) { toast("目标没保存上，请稍后再试"); }
+    });
+    $("newFood").addEventListener("click", () => openFoodForm("new", null, openSettings));
+    $("sheet").querySelectorAll("[data-editfood]").forEach((b) => b.addEventListener("click", () => openFoodForm("edit", foodById(b.dataset.editfood), openSettings)));
+    $("sheet").querySelectorAll("[data-delfood]").forEach((b) => b.addEventListener("click", async () => {
+      if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "确认"; return; }
+      const id = b.dataset.delfood, name = (foodById(id) || {}).name;
+      try {
+        await state.db.doc("foods/" + id).delete();
+        state.foods = state.foods.filter((f) => f.id !== id);
+        renderCats(); renderPresets(); renderFoods();
+        toast(`已从食物库删除 ${name}（已记的记录不受影响）`);
+        openSettings();
+      } catch (e) { toast("删除失败，请稍后再试"); }
+    }));
+    $("sheet").querySelectorAll("[data-delpreset]").forEach((b) => b.addEventListener("click", async () => {
+      if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "确认"; return; }
+      try { await state.db.doc("presets/" + b.dataset.delpreset).delete(); toast("套餐已删除"); openSettings(); }
+      catch (e) { toast("删除失败，请稍后再试"); }
+    }));
+  }
+
+  async function openHistory() {
+    openSheet(`${sheetHead("近 14 天")}<p class="muted">读取中…</p>`, "history");
+    const today = todayStr(), from = shiftDate(today, -13);
+    let byDate = {};
+    try {
+      const snap = await state.db.collection("days").where("date", ">=", from).get();
+      snap.docs.forEach((d) => { const v = d.data(); if (v && v.date) byDate[v.date] = clone(v); });
+    } catch (e) {
+      if (sheetMode === "history") $("sheet").innerHTML = `${sheetHead("近 14 天")}<p class="muted">读取失败，请稍后再试。</p>`;
+      return;
+    }
+    if (state.date >= from) byDate[state.date] = clone(state.day);
+    const rows = [];
+    for (let i = 0; i < 14; i++) {
+      const d = shiftDate(today, -i);
+      const day = Object.assign(emptyDay(d), byDate[d] || {});
+      rows.push({ d, day, tot: totals(day.entries || []), tg: targetOf(day), type: dayTypeOf(day) });
+    }
+    const logged7 = rows.slice(0, 7).filter((r) => r.day.entries && r.day.entries.length);
+    const avgK = logged7.length ? logged7.reduce((a, r) => a + r.tot.kcal, 0) / logged7.length : 0;
+    const avgP = logged7.length ? logged7.reduce((a, r) => a + r.tot.p, 0) / logged7.length : 0;
+    const max = Math.max(1, ...rows.map((r) => Math.max(r.tot.kcal, r.tg.kcal))) * 1.04;
+    if (sheetMode !== "history") return;
+    $("sheet").innerHTML = `${sheetHead("近 14 天")}
+      <div class="hist-sum">
+        <div class="stat"><small>近 7 天日均热量</small><b class="num">${logged7.length ? fmt(avgK) : "–"}</b> <small>kcal · ${logged7.length} 天有记录</small></div>
+        <div class="stat"><small>近 7 天日均蛋白</small><b class="num">${logged7.length ? fmt(avgP) : "–"}</b> <small>g</small></div>
+      </div>
+      <p class="muted">绿色竖线是当天目标。点某一天可以跳过去查看或补记。</p>
+      <div>${rows.map((r) => {
+        const has = r.day.entries && r.day.entries.length;
+        const over = r.tot.kcal > r.tg.kcal;
+        const d = parseDate(r.d);
+        return `<button class="hrow" data-goto="${r.d}">
+          <span class="d num">${d.getMonth() + 1}/${d.getDate()} 周${WD[d.getDay()]}<small>${r.type === "train" ? "训练日" : "休息日"}</small></span>
+          <span class="hbar">${has ? `<i class="${over ? "over" : ""}" style="width:${(r.tot.kcal / max) * 100}%"></i>` : ""}<span class="tick" style="left:calc(${(r.tg.kcal / max) * 100}% - 1px)"></span></span>
+          <span class="v num">${has ? `<b>${fmt(r.tot.kcal)}</b><span>${fmt(r.tot.p)}g</span>` : `<small class="muted">没记录</small>`}</span>
+        </button>`;
+      }).join("")}</div>`;
+  }
+
+  /* ---------- events ---------- */
+  $("sheet").addEventListener("click", (e) => {
+    if (e.target.closest("[data-close]")) { returnTo = returnTo && sheetMode === "food" ? returnTo : null; closeSheet(); return; }
+    const g = e.target.closest("[data-goto]");
+    if (g) { returnTo = null; closeSheet(); goDate(g.dataset.goto); }
+  });
+  $("prevDay").addEventListener("click", () => goDate(shiftDate(state.date, -1)));
+  $("nextDay").addEventListener("click", () => { if (state.date < todayStr()) goDate(shiftDate(state.date, 1)); });
+  $("todayBtn").addEventListener("click", () => goDate(todayStr()));
+  $("dtTrain").addEventListener("click", () => setDayType("train"));
+  $("dtRest").addEventListener("click", () => setDayType("rest"));
+  $("slots").addEventListener("click", (e) => { const b = e.target.closest("[data-slot]"); if (b) { state.slot = b.dataset.slot; renderSlots(); renderFoods(); } });
+  $("presets").addEventListener("click", (e) => {
+    if (!state.db) return;
+    const rm = e.target.closest("[data-rmpreset]");
+    if (rm) {
+      const id = rm.dataset.rmpreset;
+      if (state.armed && state.armed.kind === "preset" && state.armed.id === id) confirmRemove("preset", id); else arm("preset", id);
+      return;
+    }
+    const b = e.target.closest("[data-preset]"); if (b) addPreset(b.dataset.preset);
+  });
+  document.querySelectorAll("[data-manage]").forEach((b) => b.addEventListener("click", () => {
+    state.manage = !state.manage; state.armed = null; clearTimeout(armTimer);
+    renderPresets(); renderFoods();
+  }));
+  $("cats").addEventListener("click", (e) => { const b = e.target.closest("[data-cat]"); if (b) { state.cat = b.dataset.cat; renderCats(); renderFoods(); } });
+  $("search").addEventListener("input", (e) => { state.q = e.target.value; renderFoods(); });
+  $("foods").addEventListener("click", (e) => {
+    if (!state.db) return;
+    if (e.target.closest("#customBtn")) { openFoodForm("once"); return; }
+    if (e.target.closest("#newFoodBtn")) { openFoodForm("new"); return; }
+    const rm = e.target.closest("[data-rmfood]");
+    if (rm) {
+      const id = rm.dataset.rmfood;
+      if (state.armed && state.armed.kind === "food" && state.armed.id === id) confirmRemove("food", id); else arm("food", id);
+      return;
+    }
+    const b = e.target.closest("[data-food]"); if (!b) return;
+    if (state.manage) openFoodForm("edit", foodById(b.dataset.food)); else addFood(b.dataset.food);
+  });
+  $("log").addEventListener("click", (e) => {
+    const t = e.target.closest("button"); if (!t) return;
+    const step = (id, d) => { const en = state.day.entries.find((x) => x.id === id); if (en) setQty(id, Math.max(0.5, r1(en.qty + d))); };
+    if (t.dataset.inc) step(t.dataset.inc, 0.5);
+    else if (t.dataset.dec) step(t.dataset.dec, -0.5);
+    else if (t.dataset.del) removeEntry(t.dataset.del);
+    else if (t.dataset.savepreset) openPresetForm(t.dataset.savepreset);
+    else if (t.dataset.clearmeal) {
+      const slot = t.dataset.clearmeal;
+      withUndo(`已清空${slotName(slot)}`, () => { state.day.entries = state.day.entries.filter((x) => x.meal !== slot); });
+    }
+  });
+  $("log").addEventListener("change", (e) => { const i = e.target.closest("[data-qty]"); if (i) setQty(i.dataset.qty, num(i.value, 0)); });
+  $("openHistory").addEventListener("click", () => { if (state.db) openHistory(); });
+  $("openSettings").addEventListener("click", () => { if (state.db) openSettings(); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && (dirty || flushTimer)) flush(); });
+
+  /* ---------- boot ---------- */
+  render();
+  (async () => {
+    let db = null;
+    try { db = window.claude && typeof window.claude.use === "function" ? await window.claude.use("db") : null; } catch (e) { db = null; }
+    if (!db) { state.noDb = true; $("noDb").hidden = false; render(); return; }
+    state.db = db;
+    db.collection("foods").onSnapshot((snap) => {
+      state.foods = snap.docs.map((d) => Object.assign({ id: d.id }, clone(d.data())))
+        .sort((a, b) => num(a.sort, 999) - num(b.sort, 999) || String(a.name).localeCompare(String(b.name), "zh"));
+      state.foodsLoaded = true;
+      renderCats(); renderFoods(); renderPresets();
+    }, () => { state.foodsLoaded = true; renderFoods(); });
+    db.collection("presets").onSnapshot((snap) => {
+      state.presets = snap.docs.map((d) => Object.assign({ id: d.id }, clone(d.data()))).sort((a, b) => num(a.sort, 999) - num(b.sort, 999));
+      renderPresets();
+    }, () => {});
+    db.doc("settings/targets").onSnapshot((snap) => {
+      if (snap.exists) {
+        const v = clone(snap.data());
+        state.targets = {
+          train: Object.assign({}, DEFAULT_TARGETS.train, v.train), rest: Object.assign({}, DEFAULT_TARGETS.rest, v.rest),
+          trainDays: Array.isArray(v.trainDays) ? v.trainDays : DEFAULT_TARGETS.trainDays,
+        };
+        renderTop(); renderFacts();
+      }
+    }, () => {});
+    subscribeDay();
+  })();
+})();
+</script>
