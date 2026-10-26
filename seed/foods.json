@@ -179,6 +179,26 @@
     "sort": 330,
     "unit": "2 leaves"
   },
+  "carrots": {
+    "c": 8,
+    "cat": "Fruit & Veg",
+    "f": 0.2,
+    "kcal": 35,
+    "name": "Carrots",
+    "p": 0.8,
+    "sort": 335,
+    "unit": "1 handful (~85 g)"
+  },
+  "onion": {
+    "c": 10,
+    "cat": "Fruit & Veg",
+    "f": 0.1,
+    "kcal": 44,
+    "name": "Onion",
+    "p": 1.2,
+    "sort": 336,
+    "unit": "1 medium (~110 g)"
+  },
   "banana": {
     "c": 27,
     "cat": "Fruit & Veg",

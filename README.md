@@ -39,7 +39,7 @@ The page updates locally first, then about 400 ms later writes the whole day doc
 
 `seed/` holds JSON exports of the food list, saved meals and targets, keyed by document id. Nutrition values are estimates from typical package labels and can be edited on the page.
 
-- `seed/foods.json`: 29 foods
+- `seed/foods.json`: 31 foods
 - `seed/presets.json`: saved meals (currently none)
 - `seed/settings.json`: 2,200 kcal on training days, 1,780 kcal on rest days, 145 g protein every day
 
