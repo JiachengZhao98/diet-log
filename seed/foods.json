@@ -1,282 +1,282 @@
 {
   "egg": {
     "c": 0.5,
-    "cat": "蛋奶",
+    "cat": "Eggs & Dairy",
     "f": 5,
     "kcal": 70,
-    "name": "水煮蛋",
+    "name": "Hard-boiled egg",
     "p": 6,
     "sort": 10,
-    "unit": "1 个"
+    "unit": "1 egg"
   },
   "fairlife": {
     "c": 11,
-    "cat": "蛋奶",
+    "cat": "Eggs & Dairy",
     "f": 3.8,
     "kcal": 117,
-    "name": "Fairlife 2% 巧克力奶",
+    "name": "Fairlife 2% Chocolate Milk",
     "p": 11,
     "sort": 20,
     "unit": "200 ml"
   },
   "latte": {
     "c": 11,
-    "cat": "蛋奶",
+    "cat": "Eggs & Dairy",
     "f": 3.8,
     "kcal": 117,
-    "name": "拿铁（Fairlife 巧克力奶）",
+    "name": "Latte (Fairlife chocolate milk)",
     "p": 11,
     "sort": 30,
-    "unit": "1 杯 · 200 ml 奶"
+    "unit": "1 cup · 200 ml milk"
   },
   "swiss": {
     "c": 0.5,
-    "cat": "蛋奶",
+    "cat": "Eggs & Dairy",
     "f": 6,
     "kcal": 80,
-    "name": "Swiss 芝士",
+    "name": "Swiss cheese",
     "p": 4,
     "sort": 50,
-    "unit": "1 片"
+    "unit": "1 slice"
   },
   "chicken": {
     "c": 0,
-    "cat": "肉海鲜",
+    "cat": "Meat & Seafood",
     "f": 2.5,
     "kcal": 120,
-    "name": "鸡胸肉",
+    "name": "Chicken breast",
     "p": 23,
     "sort": 110,
-    "unit": "100 g 生重"
+    "unit": "100 g raw"
   },
   "beef": {
     "c": 0,
-    "cat": "肉海鲜",
+    "cat": "Meat & Seafood",
     "f": 11,
     "kcal": 200,
-    "name": "90/10 牛肉末",
+    "name": "93/7 ground beef",
     "p": 23,
     "sort": 120,
-    "unit": "¼ lb 生重"
+    "unit": "¼ lb raw"
   },
   "shrimp": {
     "c": 0,
-    "cat": "肉海鲜",
+    "cat": "Meat & Seafood",
     "f": 1,
     "kcal": 90,
-    "name": "虾",
+    "name": "Shrimp",
     "p": 20,
     "sort": 130,
-    "unit": "15 只"
+    "unit": "15 pieces"
   },
   "crab": {
     "c": 5,
-    "cat": "肉海鲜",
+    "cat": "Meat & Seafood",
     "f": 0.5,
     "kcal": 50,
-    "name": "蟹肉",
+    "name": "Crab meat",
     "p": 5,
     "sort": 140,
-    "unit": "1 份"
+    "unit": "1 serving"
   },
   "spam": {
     "c": 1,
-    "cat": "肉海鲜",
+    "cat": "Meat & Seafood",
     "f": 10.5,
     "kcal": 120,
-    "name": "SPAM 午餐肉",
+    "name": "SPAM",
     "p": 5,
     "sort": 150,
-    "unit": "120 kcal 一份"
+    "unit": "120 kcal serving"
   },
   "turkey": {
     "c": 1,
-    "cat": "肉海鲜",
+    "cat": "Meat & Seafood",
     "f": 1,
     "kcal": 30,
-    "name": "火鸡肉片",
+    "name": "Turkey slice",
     "p": 4,
     "sort": 160,
-    "unit": "1 片"
+    "unit": "1 slice"
   },
   "pepperoni": {
     "c": 0,
-    "cat": "肉海鲜",
+    "cat": "Meat & Seafood",
     "f": 6.5,
     "kcal": 70,
     "name": "Pepperoni",
     "p": 3,
     "sort": 170,
-    "unit": "5 片"
+    "unit": "5 slices"
   },
   "bread": {
     "c": 14,
-    "cat": "主食",
+    "cat": "Grains",
     "f": 1,
     "kcal": 80,
-    "name": "全麦面包",
+    "name": "Whole wheat bread",
     "p": 4,
     "sort": 210,
-    "unit": "1 片"
+    "unit": "1 slice"
   },
   "pasta": {
     "c": 71,
-    "cat": "主食",
+    "cat": "Grains",
     "f": 1.5,
     "kcal": 355,
-    "name": "意面",
+    "name": "Pasta",
     "p": 13,
     "sort": 220,
-    "unit": "干重 100 g"
+    "unit": "100 g dry"
   },
   "rice": {
     "c": 42,
-    "cat": "主食",
+    "cat": "Grains",
     "f": 0.5,
     "kcal": 195,
-    "name": "米饭",
+    "name": "Rice",
     "p": 4,
     "sort": 230,
-    "unit": "1 碗 · 熟重 150 g"
+    "unit": "1 bowl · 150 g cooked"
   },
   "oats": {
     "c": 27,
-    "cat": "主食",
+    "cat": "Grains",
     "f": 2.5,
     "kcal": 150,
-    "name": "燕麦",
+    "name": "Oats",
     "p": 5,
     "sort": 240,
-    "unit": "干重 40 g"
+    "unit": "40 g dry"
   },
   "broc-mush": {
     "c": 7,
-    "cat": "蔬果",
+    "cat": "Fruit & Veg",
     "f": 0.5,
     "kcal": 40,
-    "name": "西兰花 + 香菇",
+    "name": "Broccoli + mushrooms",
     "p": 3,
     "sort": 310,
-    "unit": "1 份"
+    "unit": "1 serving"
   },
   "spinach": {
     "c": 1.5,
-    "cat": "蔬果",
+    "cat": "Fruit & Veg",
     "f": 0.2,
     "kcal": 10,
-    "name": "小菠菜",
+    "name": "Baby spinach",
     "p": 1,
     "sort": 320,
-    "unit": "1 把"
+    "unit": "1 handful"
   },
   "lettuce": {
     "c": 1,
-    "cat": "蔬果",
+    "cat": "Fruit & Veg",
     "f": 0,
     "kcal": 5,
-    "name": "生菜",
+    "name": "Lettuce",
     "p": 0.4,
     "sort": 330,
-    "unit": "2 片"
+    "unit": "2 leaves"
   },
   "banana": {
     "c": 27,
-    "cat": "蔬果",
+    "cat": "Fruit & Veg",
     "f": 0.4,
     "kcal": 105,
-    "name": "香蕉",
+    "name": "Banana",
     "p": 1.3,
     "sort": 340,
-    "unit": "1 根"
+    "unit": "1 medium"
   },
   "grapefruit": {
     "c": 7.5,
-    "cat": "蔬果",
+    "cat": "Fruit & Veg",
     "f": 0.1,
     "kcal": 30,
-    "name": "Texas 西柚",
+    "name": "Texas grapefruit",
     "p": 0.6,
     "sort": 350,
-    "unit": "¼ 个"
+    "unit": "¼ fruit"
   },
   "premier": {
     "c": 5,
-    "cat": "零食补剂",
+    "cat": "Snacks & Protein",
     "f": 3,
     "kcal": 160,
-    "name": "Premier 蛋白奶昔",
+    "name": "Premier Protein shake",
     "p": 30,
     "sort": 410,
-    "unit": "1 瓶"
+    "unit": "1 bottle"
   },
   "quest-chips": {
     "c": 5,
-    "cat": "零食补剂",
+    "cat": "Snacks & Protein",
     "f": 5,
     "kcal": 140,
-    "name": "Quest 蛋白薯片",
+    "name": "Quest Protein Chips",
     "p": 20,
     "sort": 420,
-    "unit": "1 袋"
+    "unit": "1 bag"
   },
   "protein-bar": {
     "c": 22,
-    "cat": "零食补剂",
+    "cat": "Snacks & Protein",
     "f": 7,
     "kcal": 200,
-    "name": "蛋白棒",
+    "name": "Protein bar",
     "p": 20,
     "sort": 430,
-    "unit": "1 根"
+    "unit": "1 bar"
   },
   "hummus": {
     "c": 12,
-    "cat": "零食补剂",
+    "cat": "Snacks & Protein",
     "f": 13,
     "kcal": 180,
-    "name": "鹰嘴豆泥",
+    "name": "Hummus",
     "p": 5,
     "sort": 440,
-    "unit": "180 kcal 一份"
+    "unit": "180 kcal serving"
   },
   "curry": {
     "c": 8,
-    "cat": "调料油",
+    "cat": "Sauces & Oils",
     "f": 6,
     "kcal": 90,
-    "name": "咖喱块",
+    "name": "Curry roux",
     "p": 1,
     "sort": 510,
-    "unit": "1 块"
+    "unit": "1 block"
   },
   "oil": {
     "c": 0,
-    "cat": "调料油",
+    "cat": "Sauces & Oils",
     "f": 14,
     "kcal": 120,
-    "name": "烹饪油",
+    "name": "Cooking oil",
     "p": 0,
     "sort": 520,
-    "unit": "1 汤匙"
+    "unit": "1 tbsp"
   },
   "mcmuffin": {
     "c": 30,
-    "cat": "外食",
+    "cat": "Eating Out",
     "f": 31,
     "kcal": 480,
-    "name": "麦当劳 猪柳蛋麦满分",
+    "name": "McDonald's Sausage McMuffin with Egg",
     "p": 21,
     "sort": 610,
-    "unit": "1 个"
+    "unit": "1 sandwich"
   },
   "mcgriddles": {
     "c": 45,
-    "cat": "外食",
+    "cat": "Eating Out",
     "f": 32,
     "kcal": 550,
-    "name": "麦当劳 Sausage, Egg & Cheese McGriddles",
+    "name": "McDonald's Sausage, Egg & Cheese McGriddles",
     "p": 20,
     "sort": 620,
-    "unit": "1 个"
+    "unit": "1 sandwich"
   }
 }

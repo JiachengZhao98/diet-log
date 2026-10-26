@@ -1,46 +1,46 @@
-# Diet Log · 饮食日志
+# Diet Log
 
-点选式饮食记录。常吃的食物和整顿套餐点一下就记上，页面实时汇总热量、蛋白质、碳水和脂肪，并按训练日 / 休息日对照目标。
+A tap-to-log food tracker. Tap a food you eat often, or a saved meal, and the page totals calories, protein, carbs and fat against a training-day or rest-day target.
 
-线上版本是一个 claude.ai Artifact（私有页面），数据存在 Artifact 自带的数据库里。
+The live version is a private claude.ai Artifact; its data lives in the Artifact's built-in database.
 
-## 功能
+## Features
 
-- **点选记录**：先选早餐 / 午餐 / 晚餐 / 加餐，再点食物，每点一下加一份；点套餐会把整顿饭记到它对应的那一餐。
-- **撤销与修改**：每次操作后可以撤销；记录里能改份数（支持小数，比如意面 0.9 份）、删除单项或清空一整餐。
-- **营养成分表**：能量（kcal，附 kJ 换算）以及蛋白 / 碳水 / 脂肪的已摄入、目标和占比，外加各餐的蛋白分布。
-- **训练日 / 休息日**：默认按星期几判断，某一天可以在顶部单独切换。
-- **一次性记录**：聚餐、外卖这类不在列表里的，手动填热量，可以顺手存进食物库。
-- **管理**：在页面上增删改食物和套餐；也可以把某一餐「存为套餐」。
-- **近 14 天**：每天的热量与目标对比，以及近 7 天的日均热量和日均蛋白。
+- **Tap to log**: pick Breakfast, Lunch, Dinner or Snack, then tap foods. Each tap adds one serving. A saved meal logs every item at once into its own slot.
+- **Undo and edit**: every action can be undone. In the log you can change servings (decimals work, e.g. 0.9 of a pasta serving), delete an item, or clear a whole meal.
+- **Nutrition Facts panel**: calories (with a kJ conversion) plus protein, carbs and fat as eaten, target and percent, and protein split by meal.
+- **Training vs. rest days**: chosen by weekday by default; any single day can be switched at the top.
+- **One-off entries**: for eating out or anything not in the list, enter the numbers by hand and optionally save the food for next time.
+- **Manage**: add, edit and delete foods and meals on the page, or save any logged meal as a reusable meal.
+- **Last 14 days**: each day's calories against its target, plus 7-day averages for calories and protein.
 
-## 技术
+## How it works
 
-- `index.html`：单文件，原生 HTML / CSS / JavaScript，不依赖任何框架。字体从 Google Fonts 加载（Archivo）。
-- 数据通过 Artifact 运行时访问：`await window.claude.use("db")`。这是一个文档型数据库，读写方式类似 Firestore，支持 `onSnapshot` 实时订阅。
-- 在 claude.ai 以外直接打开这个文件时，`window.claude` 不存在，页面会提示需要在 claude.ai 里打开。
+- `index.html` is a single file: plain HTML, CSS and JavaScript with no framework. The Archivo font loads from Google Fonts.
+- Data goes through the Artifact runtime: `await window.claude.use("db")`. It is a document store with a Firestore-like API, including live `onSnapshot` subscriptions.
+- Opened outside claude.ai, `window.claude` does not exist and the page shows a notice that it needs claude.ai.
 
-### 数据模型
+### Data model
 
-| 路径 | 内容 |
+| Path | Contents |
 | --- | --- |
-| `foods/{id}` | 食物：`name`、`unit`（一份是多少）、`kcal`、`p`、`c`、`f`、`cat`、`sort` |
-| `presets/{id}` | 套餐：`name`、`slot`（`b`/`l`/`d`/`s`）、`items: [{food, qty}]`、`sort` |
-| `settings/targets` | `train` / `rest` 两套目标（`kcal`、`p`、`c`、`f`），以及 `trainDays`（0 = 周日） |
-| `days/{YYYY-MM-DD}` | 一天一个文档：`dayType`（`train` / `rest` / `null` 表示按星期几自动判断）和 `entries` 数组 |
+| `foods/{id}` | A food: `name`, `unit` (serving size), `kcal`, `p`, `c`, `f`, `cat`, `sort` |
+| `presets/{id}` | A saved meal: `name`, `slot` (`b`/`l`/`d`/`s`), `items: [{food, qty}]`, `sort` |
+| `settings/targets` | `train` and `rest` targets (`kcal`, `p`, `c`, `f`) and `trainDays` (0 = Sunday) |
+| `days/{YYYY-MM-DD}` | One document per day: `dayType` (`train`, `rest`, or `null` for the weekday default) and an `entries` array |
 
-`entries` 里的每一条会存下记录时的营养值（`kcal`、`p`、`c`、`f` 都是每份的值）以及份数 `qty`，所以之后修改食物库不会改动历史记录。
+Each entry stores the per-serving `kcal`, `p`, `c`, `f` at the time it was logged, plus `qty`, so editing a food later never rewrites past days.
 
-### 写入策略
+### Writes
 
-本地先更新界面，约 400 ms 后把当天文档整份写入数据库。同一个文档的写入排队串行执行，有未完成的写入时会忽略服务端推回来的快照，避免把本地的新改动覆盖掉。
+The page updates locally first, then about 400 ms later writes the whole day document. Writes to a document are queued and sent one at a time, and incoming snapshots are ignored while a write is pending so they cannot overwrite newer local changes.
 
-## 种子数据
+## Seed data
 
-`seed/` 是食物库、套餐和目标的 JSON 导出，格式为 `{文档 id: 文档内容}`。营养值按常见包装标签估算，可以在页面上直接修改。
+`seed/` holds JSON exports of the food list, saved meals and targets, keyed by document id. Nutrition values are estimates from typical package labels and can be edited on the page.
 
-- `seed/foods.json`：28 样常吃食物
-- `seed/presets.json`：5 个套餐
-- `seed/settings.json`：训练日 2,200 kcal / 休息日 1,780 kcal，蛋白每天 145 g
+- `seed/foods.json`: 28 foods
+- `seed/presets.json`: saved meals (currently none)
+- `seed/settings.json`: 2,200 kcal on training days, 1,780 kcal on rest days, 145 g protein every day
 
-每天的饮食记录（`days/`）不在这个仓库里。
+Daily logs (`days/`) are not included in this repository.
