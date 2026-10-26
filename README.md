@@ -11,6 +11,7 @@ The live version is a private claude.ai Artifact; its data lives in the Artifact
 - **Undo and edit**: every action can be undone. In the log you can change servings (decimals work, e.g. 0.9 of a pasta serving), delete an item, or clear a whole meal.
 - **Nutrition Facts panel**: calories (with a kJ conversion) plus protein, carbs and fat as eaten, target and percent, and protein split by meal.
 - **Training vs. rest days**: chosen by weekday by default; any single day can be switched at the top.
+- **Edit targets**: the "✎ Edit target" button on the Nutrition Facts card opens a sheet with calories, protein, carbs and fat for training and rest days (today's type first), a live check of what the macros add up to, and the default training weekdays.
 - **Bilingual UI**: a button in the top bar switches between English and Chinese; the choice is remembered per device. Every food carries an English and a Chinese name and serving size.
 - **Auto-translated names**: when adding or editing a food, the name in the current UI language is required and the other is optional. If it is left blank, the page asks Claude to translate it (via the Artifact `sample` capability) before saving.
 - **One-off entries**: for eating out or anything not in the list, enter the numbers by hand and optionally save the food for next time. Zero-calorie items are allowed.
@@ -23,7 +24,8 @@ The live version is a private claude.ai Artifact; its data lives in the Artifact
 - All UI text lives in one `I18N` dictionary with `en` and `zh` entries; static elements use `data-t`, `data-t-aria` and `data-t-ph` attributes.
 - Data goes through the Artifact runtime: `await window.claude.use("db")`. It is a document store with a Firestore-like API, including live `onSnapshot` subscriptions. Translation uses `await window.claude.use("sample")`.
 - The artifact declares the `db` and `sample` capabilities.
-- Opened outside claude.ai, `window.claude` does not exist and the page shows a notice that it needs claude.ai.
+- Opened outside claude.ai (for example straight from disk in Chrome), the UI renders but `window.claude` does not exist, so there is no data and the page shows a notice that it needs claude.ai.
+- An iOS version is planned; see [`docs/IOS_PLAN.md`](docs/IOS_PLAN.md).
 
 ### Data model
 
@@ -48,6 +50,6 @@ The page updates locally first, then about 400 ms later writes the whole day doc
 
 - `seed/foods.json`: 34 foods, each with English and Chinese names
 - `seed/presets.json`: saved meals (currently none)
-- `seed/settings.json`: 2,200 kcal on training days, 1,780 kcal on rest days, 145 g protein every day
+- `seed/settings.json`: training days 2,200 kcal / 145 g protein, rest days 1,900 kcal / 135 g protein; Thursday and Sunday are training days
 
 Daily logs (`days/`) are not included in this repository.

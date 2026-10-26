@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jacob's Diet Log</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,6 +41,8 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
 body {
   background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.45;
   -webkit-tap-highlight-color: transparent;
@@ -98,7 +102,27 @@ button { cursor: pointer; }
 .facts { background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; padding: 10px 14px 12px; }
 .facts-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .facts h2 { margin: 0; font-size: 30px; font-weight: 900; font-stretch: 72%; letter-spacing: -0.01em; line-height: 1; }
-.facts-sub { font-size: 12px; color: var(--muted); }
+.facts-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.tedit {
+  border: 1.5px solid var(--ink); background: transparent; color: var(--ink); border-radius: 999px;
+  padding: 3px 11px; font-size: 12.5px; font-weight: 700; line-height: 1.3; white-space: nowrap;
+}
+.tedit:hover { background: var(--soft); }
+.tcard { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.tcard.cur { border-color: var(--accent); background: var(--accent-soft); }
+.tcard-h { display: flex; align-items: center; gap: 8px; }
+.tcard-h b { font-size: 16px; font-weight: 800; }
+.tbadge { font-size: 11px; font-weight: 700; color: var(--on-accent); background: var(--accent); border-radius: 999px; padding: 1px 8px; }
+.tk { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 700; }
+.tk-in { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; min-width: 0; }
+.tk input {
+  width: 116px; font-size: 22px; font-weight: 800; text-align: right; padding: 6px 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+}
+.tm { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tm label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); font-weight: 600; min-width: 0; }
+.tm input { flex: 1; width: 100%; min-width: 0; padding: 7px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); text-align: right; }
+.tsum { font-size: 12px; margin: 0; }
 .rule-xl { height: 9px; background: var(--ink); margin: 8px 0 6px; }
 .rule-m { height: 4px; background: var(--ink); margin: 8px 0 4px; }
 .hair { height: 1px; background: var(--ink); opacity: .35; }
@@ -412,6 +436,9 @@ button { cursor: pointer; }
       mealName: "Meal name", myMeal: (s) => `My ${s}`, logToLbl: "Log to",
       skippedNote: (k) => `${k} one-off item${k === 1 ? " isn't" : "s aren't"} in your foods and won't be included.`,
       saveMeal: "Save meal", errMealName: "Enter a meal name.", savedMeal: (n) => `Saved meal: ${n}`,
+      editTarget: "✎ Edit target", todayBadge: "Today", thisDayBadge: "This day",
+      macroSum: (m, k) => `Protein + carbs + fat ≈ ${m} kcal (target ${k})`,
+      errTargetKcal: "Enter a calorie target for both day types.", trainDaysOn: (l) => `Training days: ${l}`,
       dailyTargets: "Daily targets", proteinG: "Protein g", carbsG: "Carbs g", fatG: "Fat g",
       defaultTrainDays: "Default training days (switch any single day at the top)", saveTargets: "Save targets",
       mealsSec: "Meals", deletedPh: "(deleted)", noMealsShort: "No meals yet.", foodsSec: (n) => `Foods (${n})`,
@@ -474,6 +501,9 @@ button { cursor: pointer; }
       mealName: "套餐名", myMeal: (s) => `我的${s}`, logToLbl: "记到",
       skippedNote: (k) => `有 ${k} 项是一次性记录，不在食物库里，不会放进套餐。`,
       saveMeal: "保存套餐", errMealName: "请填套餐名。", savedMeal: (n) => `已存为套餐：${n}`,
+      editTarget: "✎ 改目标", todayBadge: "今天", thisDayBadge: "当天",
+      macroSum: (m, k) => `蛋白 + 碳水 + 脂肪合计约 ${m} kcal（目标 ${k}）`,
+      errTargetKcal: "训练日和休息日的热量目标都要填。", trainDaysOn: (l) => `训练日：${l}`,
       dailyTargets: "每日目标", proteinG: "蛋白 g", carbsG: "碳水 g", fatG: "脂肪 g",
       defaultTrainDays: "默认训练日（某一天可以在顶部单独切换）", saveTargets: "保存目标",
       mealsSec: "套餐", deletedPh: "（已删）", noMealsShort: "还没有套餐。", foodsSec: (n) => `常吃食物（${n}）`,
@@ -744,7 +774,8 @@ button { cursor: pointer; }
       return `<span>${s[LANG]} <b class="num">${st.p ? fmt(st.p) + " g" : "–"}</b></span>`;
     }).join("");
     $("facts").innerHTML = `
-      <div class="facts-head"><h2>${t("factsTitle")}</h2><span class="facts-sub">${t("targetSub", ty === "train", t("items", state.day.entries.length))}</span></div>
+      <div class="facts-head"><h2>${t("factsTitle")}</h2><button class="tedit" data-edit-target>${t("editTarget")}</button></div>
+      <div class="facts-sub">${t("targetSub", ty === "train", t("items", state.day.entries.length))}</div>
       <div class="rule-xl"></div>
       <div class="energy">
         <div><div class="lbl">${t("calories")}</div><div class="kj num">≈ ${fmt(tot.kcal * 4.184)} kJ</div></div>
@@ -810,6 +841,9 @@ button { cursor: pointer; }
   }
   function renderFoods() {
     const el = $("foods");
+    $("foodsH").textContent = state.manage ? t("foodsHManage") : t("foodsH");
+    $("presetsH").textContent = state.manage ? t("presetsHManage") : t("presetsH");
+    document.querySelectorAll("[data-manage]").forEach((b) => { b.setAttribute("aria-pressed", String(state.manage)); b.textContent = state.manage ? t("done") : t("manage"); });
     if (state.noDb) { el.innerHTML = ""; return; }
     if (!state.foodsLoaded) { el.innerHTML = `<p class="muted">${t("loadingFoods")}</p>`; return; }
     const q = state.q.trim().toLowerCase();
@@ -841,9 +875,6 @@ button { cursor: pointer; }
       ? `<button class="food addnew" id="newFoodBtn">${t("newFood")}<br><span class="food-unit">${t("newFoodSub")}</span></button>`
       : `<button class="food addnew" id="customBtn">${t("oneOff")}<br><span class="food-unit">${t("oneOffSub")}</span></button>`;
     el.innerHTML = html;
-    $("foodsH").textContent = state.manage ? t("foodsHManage") : t("foodsH");
-    $("presetsH").textContent = state.manage ? t("presetsHManage") : t("presetsH");
-    document.querySelectorAll("[data-manage]").forEach((b) => { b.setAttribute("aria-pressed", String(state.manage)); b.textContent = state.manage ? t("done") : t("manage"); });
   }
   function renderLog() {
     const el = $("log");
@@ -1060,34 +1091,17 @@ button { cursor: pointer; }
 
   function openSettings() {
     const T = state.targets;
-    const trow = (key, label) => `<span class="rl">${label}</span>` + ["kcal", "p", "c", "f"].map((k) => `<input class="num" type="number" inputmode="decimal" id="t-${key}-${k}" value="${esc(T[key][k])}" aria-label="${esc(label)} ${k}">`).join("");
-    const days = T.trainDays.slice();
     const coll = collator();
     const foods = state.foods.slice().sort((a, b) => coll.compare(fname(a), fname(b)));
     openSheet(`${sheetHead(t("targetsFoods"))}
       <div class="sec-h">${t("dailyTargets")}</div>
-      <div class="tgt"><span></span><span class="h">kcal</span><span class="h">${t("proteinG")}</span><span class="h">${t("carbsG")}</span><span class="h">${t("fatG")}</span>
-        ${trow("train", t("trainingDay"))}${trow("rest", t("restDay"))}</div>
-      <div class="sec-h">${t("defaultTrainDays")}</div>
-      <div class="weekdays" id="wd">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-wd="${d}" aria-pressed="${days.includes(d)}">${wd(d)}</button>`).join("")}</div>
-      <div class="sheet-actions"><span class="spacer"></span><button class="btn primary" id="saveTargets">${t("saveTargets")}</button></div>
+      <div class="list"><div class="li"><div class="t num">${t("trainingDay")} ${fmt(T.train.kcal)} kcal · ${t("restDay")} ${fmt(T.rest.kcal)} kcal<small>${t("trainDaysOn", trainDayList())}</small></div><span></span><button class="btn" id="editTargets">${t("edit")}</button></div></div>
       <div class="sec-h">${t("mealsSec")}</div>
       <div class="list">${state.presets.length ? state.presets.map((p) => { const s = presetKcal(p); return `<div class="li"><div class="t">${esc(p.name)}<small>${slotName(p.slot)} · ${(p.items || []).map((it) => { const f = foodById(it.food); return f ? esc(fname(f)) + " ×" + fmtQty(it.qty) : t("deletedPh"); }).join(LANG === "zh" ? "、" : ", ")}</small></div><span class="k num">${fmt(s.k)}</span><button class="btn danger" data-delpreset="${esc(p.id)}">${t("del")}</button></div>`; }).join("") : `<p class="muted">${t("noMealsShort")}</p>`}</div>
       <div class="sec-h">${t("foodsSec", state.foods.length)}</div>
       <div class="sheet-actions"><button class="btn" id="newFood">${t("newFood")}</button></div>
       <div class="list">${foods.map((f) => `<div class="li"><div class="t">${esc(fname(f))}<small>${esc(funit(f))} · ${esc(catLabel(f.cat || "Other"))}</small></div><span class="k num">${fmt(f.kcal)} kcal</span><span class="li-acts"><button class="btn" data-editfood="${esc(f.id)}">${t("edit")}</button><button class="btn danger" data-delfood="${esc(f.id)}">${t("del")}</button></span></div>`).join("")}</div>`, "settings");
-    $("wd").addEventListener("click", (e) => {
-      const b = e.target.closest("[data-wd]"); if (!b) return;
-      const d = Number(b.dataset.wd); const i = days.indexOf(d);
-      if (i >= 0) days.splice(i, 1); else days.push(d);
-      b.setAttribute("aria-pressed", String(days.includes(d)));
-    });
-    $("saveTargets").addEventListener("click", async () => {
-      const read = (key) => ({ kcal: num($(`t-${key}-kcal`).value), p: num($(`t-${key}-p`).value), c: num($(`t-${key}-c`).value), f: num($(`t-${key}-f`).value) });
-      const data = { train: read("train"), rest: read("rest"), trainDays: days.slice().sort() };
-      try { await state.db.doc("settings/targets").set(data); toast(t("targetsSaved")); }
-      catch (e) { toast(t("targetsFailed")); }
-    });
+    $("editTargets").addEventListener("click", () => openTargets(openSettings));
     $("newFood").addEventListener("click", () => openFoodForm("new", null, openSettings));
     $("sheet").querySelectorAll("[data-editfood]").forEach((b) => b.addEventListener("click", () => openFoodForm("edit", foodById(b.dataset.editfood), openSettings)));
     $("sheet").querySelectorAll("[data-delfood]").forEach((b) => b.addEventListener("click", async () => {
@@ -1106,6 +1120,53 @@ button { cursor: pointer; }
       try { await state.db.doc("presets/" + b.dataset.delpreset).delete(); toast(t("mealDeleted")); openSettings(); }
       catch (e) { toast(t("deleteFailed")); }
     }));
+  }
+
+  const trainDayList = () => [1, 2, 3, 4, 5, 6, 0].filter((d) => state.targets.trainDays.includes(d))
+    .map((d) => (LANG === "zh" ? "周" + WD_ZH[d] : WD_EN[d])).join(LANG === "zh" ? "、" : ", ") || "–";
+
+  function openTargets(back) {
+    returnTo = back || null;
+    const T = state.targets;
+    const cur = dayTypeOf(state.day);
+    const days = T.trainDays.slice();
+    const block = (key) => `
+      <div class="tcard${key === cur ? " cur" : ""}">
+        <div class="tcard-h"><b>${key === "train" ? t("trainingDay") : t("restDay")}</b>${key === cur ? `<span class="tbadge">${t(state.date === todayStr() ? "todayBadge" : "thisDayBadge")}</span>` : ""}</div>
+        <label class="tk" for="t-${key}-kcal"><span>${t("calories")}</span><span class="tk-in"><input class="num" type="number" inputmode="numeric" min="0" id="t-${key}-kcal" value="${esc(T[key].kcal)}"> kcal</span></label>
+        <div class="tm">${["p", "c", "f"].map((k) => `<label for="t-${key}-${k}"><span>${t(k === "p" ? "protein" : k === "c" ? "carbs" : "fat")}</span><span class="tk-in"><input class="num" type="number" inputmode="decimal" min="0" id="t-${key}-${k}" value="${esc(T[key][k])}"> g</span></label>`).join("")}</div>
+        <p class="muted tsum num" id="t-${key}-sum"></p>
+      </div>`;
+    openSheet(`${sheetHead(t("dailyTargets"))}
+      <div id="tgtWrap" style="display:flex;flex-direction:column;gap:12px">
+        ${cur === "train" ? block("train") + block("rest") : block("rest") + block("train")}
+        <div class="sec-h">${t("defaultTrainDays")}</div>
+        <div class="weekdays" id="wd">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-wd="${d}" aria-pressed="${days.includes(d)}">${wd(d)}</button>`).join("")}</div>
+        <p class="muted" id="t-err" hidden></p>
+        <div class="sheet-actions"><span class="spacer"></span><button type="button" class="btn" data-close>${t("cancel")}</button><button type="button" class="btn primary" id="saveTargets">${t("saveTargets")}</button></div>
+      </div>`, "targets");
+    const val = (key, k) => num($(`t-${key}-${k}`).value);
+    const upd = (key) => { $(`t-${key}-sum`).textContent = t("macroSum", fmt(4 * val(key, "p") + 4 * val(key, "c") + 9 * val(key, "f")), fmt(val(key, "kcal"))); };
+    upd("train"); upd("rest");
+    $("tgtWrap").addEventListener("input", (e) => { const m = (e.target.id || "").match(/^t-(train|rest)-/); if (m) upd(m[1]); });
+    $("wd").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-wd]"); if (!b) return;
+      const d = Number(b.dataset.wd); const i = days.indexOf(d);
+      if (i >= 0) days.splice(i, 1); else days.push(d);
+      b.setAttribute("aria-pressed", String(days.includes(d)));
+    });
+    $("saveTargets").addEventListener("click", async () => {
+      const read = (key) => ({ kcal: val(key, "kcal"), p: val(key, "p"), c: val(key, "c"), f: val(key, "f") });
+      const data = { train: read("train"), rest: read("rest"), trainDays: days.slice().sort() };
+      if (!(data.train.kcal > 0) || !(data.rest.kcal > 0)) { $("t-err").hidden = false; $("t-err").textContent = t("errTargetKcal"); return; }
+      try {
+        await state.db.doc("settings/targets").set(data);
+        state.targets = clone(data);
+        renderTop(); renderFacts();
+        closeSheet();
+        toast(t("targetsSaved"));
+      } catch (e) { $("t-err").hidden = false; $("t-err").textContent = t("targetsFailed"); }
+    });
   }
 
   async function openHistory() {
@@ -1159,7 +1220,7 @@ button { cursor: pointer; }
     render();
   });
   $("sheet").addEventListener("click", (e) => {
-    if (e.target.closest("[data-close]")) { returnTo = returnTo && sheetMode === "food" ? returnTo : null; closeSheet(); return; }
+    if (e.target.closest("[data-close]")) { returnTo = returnTo && (sheetMode === "food" || sheetMode === "targets") ? returnTo : null; closeSheet(); return; }
     const g = e.target.closest("[data-goto]");
     if (g) { returnTo = null; closeSheet(); goDate(g.dataset.goto); }
   });
@@ -1215,6 +1276,7 @@ button { cursor: pointer; }
     }
   });
   $("log").addEventListener("change", (e) => { const i = e.target.closest("[data-qty]"); if (i) setQty(i.dataset.qty, num(i.value, 0)); });
+  $("facts").addEventListener("click", (e) => { if (e.target.closest("[data-edit-target]") && state.db) openTargets(); });
   $("openHistory").addEventListener("click", () => { if (state.db) openHistory(); });
   $("openSettings").addEventListener("click", () => { if (state.db) openSettings(); });
   document.addEventListener("visibilitychange", () => {
