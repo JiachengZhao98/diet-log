@@ -130,14 +130,14 @@
     "unit": "100 g dry"
   },
   "rice": {
-    "c": 42,
+    "c": 67,
     "cat": "Grains",
     "f": 0.5,
-    "kcal": 195,
-    "name": "Rice",
-    "p": 4,
+    "kcal": 290,
+    "name": "Bibigo Cooked Sticky White Rice",
+    "p": 6,
     "sort": 230,
-    "unit": "1 bowl · 150 g cooked"
+    "unit": "1 bowl (210 g)"
   },
   "oats": {
     "c": 27,
@@ -198,6 +198,16 @@
     "p": 0.6,
     "sort": 350,
     "unit": "¼ fruit"
+  },
+  "fairlife-shake": {
+    "c": 3,
+    "cat": "Snacks & Protein",
+    "f": 2.5,
+    "kcal": 150,
+    "name": "Fairlife Nutrition Plan Protein Shake",
+    "p": 30,
+    "sort": 405,
+    "unit": "1 bottle (340 ml)"
   },
   "premier": {
     "c": 5,
