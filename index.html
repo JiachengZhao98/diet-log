@@ -167,6 +167,7 @@ button { cursor: pointer; }
 .food.flash { border-color: var(--accent); background: var(--accent-soft); }
 .food-name { font-weight: 700; font-size: 14.5px; line-height: 1.25; overflow-wrap: anywhere; }
 .food-unit { font-size: 12px; color: var(--muted); }
+.food-unit .wk { color: var(--accent); font-weight: 600; white-space: nowrap; }
 .food-nums { margin-top: auto; padding-top: 3px; font-size: 12px; color: var(--muted); }
 .food-nums b { color: var(--ink); font-weight: 800; font-size: 14px; }
 .food-nums .p { color: var(--pro); font-weight: 700; }
@@ -298,47 +299,52 @@ button { cursor: pointer; }
 .toast button { border: 0; background: transparent; color: var(--toast-accent); font-weight: 800; padding: 4px 2px; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } .food:active, .preset:active { transform: none; } }
+.lang-btn {
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px;
+  padding: 5px 11px; font-size: 13px; font-weight: 700; line-height: 1.2;
+}
+.lang-btn:hover { border-color: var(--muted); }
 </style>
-
 <header class="topbar">
   <div class="topbar-in">
     <div class="datenav">
-      <button class="iconbtn" id="prevDay" aria-label="Previous day">‹</button>
-      <span class="date-title" id="dateTitle">Today</span>
-      <button class="iconbtn" id="nextDay" aria-label="Next day">›</button>
-      <button class="today-link" id="todayBtn" hidden>Back to today</button>
+      <button class="iconbtn" id="prevDay" data-t-aria="prevDay">‹</button>
+      <span class="date-title" id="dateTitle"></span>
+      <button class="iconbtn" id="nextDay" data-t-aria="nextDay">›</button>
+      <button class="today-link" id="todayBtn" data-t="backToday" hidden></button>
     </div>
-    <div class="daytype" role="group" aria-label="Training day or rest day">
-      <button id="dtTrain" aria-pressed="false">Training</button>
-      <button id="dtRest" aria-pressed="true">Rest</button>
+    <div class="daytype" role="group" data-t-aria="dayTypeGroup">
+      <button id="dtTrain" aria-pressed="false" data-t="trainingDay"></button>
+      <button id="dtRest" aria-pressed="true" data-t="restDay"></button>
     </div>
+    <button class="lang-btn" id="langBtn" data-t="langBtn" data-t-aria="langAria"></button>
     <div class="mini num" id="mini"></div>
   </div>
 </header>
 
 <main class="wrap">
-  <div class="notice" id="noDb" hidden>Open this page in claude.ai while signed in to read and save your log.</div>
+  <div class="notice" id="noDb" data-t="noDb" hidden></div>
   <div class="grid">
-    <section class="facts a-facts" id="facts" aria-label="Today's nutrition summary"></section>
-    <section class="panel a-picker" aria-label="Tap to log">
-      <div class="slots" role="group" aria-label="Meal to log to" id="slots"></div>
+    <section class="facts a-facts" id="facts" data-t-aria="summaryAria"></section>
+    <section class="panel a-picker" data-t-aria="pickerAria">
+      <div class="slots" role="group" data-t-aria="slotsAria" id="slots"></div>
       <div class="slots-hint" id="slotHint"></div>
-      <div class="panel-h"><h3 id="presetsH">Meals · log a whole meal in one tap</h3><button class="manage-btn" data-manage aria-pressed="false">Manage</button></div>
+      <div class="panel-h"><h3 id="presetsH"></h3><button class="manage-btn" data-manage aria-pressed="false"></button></div>
       <div class="presets" id="presets"></div>
-      <div class="panel-h"><h3 id="foodsH">Foods · tap to add, − / + to adjust</h3><button class="manage-btn" data-manage aria-pressed="false">Manage</button></div>
+      <div class="panel-h"><h3 id="foodsH"></h3><button class="manage-btn" data-manage aria-pressed="false"></button></div>
       <div class="tools">
-        <input class="search" id="search" type="search" placeholder="Search foods" autocomplete="off">
+        <input class="search" id="search" type="search" data-t-ph="searchPh" autocomplete="off">
       </div>
       <div class="cats" id="cats"></div>
       <div class="foods" id="foods"></div>
     </section>
-    <section class="panel a-log" id="logPanel" aria-label="What you ate">
-      <div class="panel-h"><h3>Log</h3><span class="muted num" id="logCount"></span></div>
+    <section class="panel a-log" id="logPanel" data-t-aria="logAria">
+      <div class="panel-h"><h3 data-t="logH"></h3><span class="muted num" id="logCount"></span></div>
       <div id="log"></div>
     </section>
     <div class="footer-actions a-foot">
-      <button class="btn" id="openHistory">Last 14 days</button>
-      <button class="btn" id="openSettings">Targets &amp; foods</button>
+      <button class="btn" id="openHistory" data-t="last14"></button>
+      <button class="btn" id="openSettings" data-t="targetsFoods"></button>
     </div>
   </div>
 </main>
@@ -346,17 +352,150 @@ button { cursor: pointer; }
 <div class="overlay" id="overlay" hidden>
   <div class="sheet" id="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
 </div>
-<div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastUndo">Undo</button></div>
+<div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastUndo" data-t="undo"></button></div>
 
 <script>
 (() => {
+  /* ---------- language ---------- */
+  const I18N = {
+    en: {
+      langBtn: "中文", langAria: "切换到中文",
+      today: "Today", backToday: "Back to today", prevDay: "Previous day", nextDay: "Next day",
+      dayTypeGroup: "Training day or rest day", trainingDay: "Training", restDay: "Rest",
+      noDb: "Open this page in claude.ai while signed in to read and save your log.",
+      summaryAria: "Today's nutrition summary", pickerAria: "Tap to log", slotsAria: "Meal to log to", logAria: "What you ate",
+      presetsH: "Meals · log a whole meal in one tap", presetsHManage: "Manage meals · tap twice to delete",
+      foodsH: "Foods · tap to add, − / + to adjust", foodsHManage: "Manage foods · tap a food to edit, Delete to remove",
+      manage: "Manage", done: "Done", searchPh: "Search foods", logH: "Log", last14: "Last 14 days", targetsFoods: "Targets & foods", undo: "Undo",
+      items: (n) => `${n} item${n === 1 ? "" : "s"}`,
+      kcalLeftMini: (n) => `<b>${n}</b> kcal left`, kcalOverMini: (n) => `<b class="over">${n}</b> kcal over`,
+      proteinMini: (a, b) => `Protein <b>${a}</b> / ${b} g`,
+      factsTitle: "Nutrition Facts", targetSub: (train, items) => `${train ? "Training day" : "Rest day"} target · ${items}`,
+      calories: "Calories", remainLeft: (n) => `${n} kcal left`, remainOver: (n) => `${n} kcal over target`,
+      colNutrient: "Nutrient", colEaten: "Eaten / Target", colPct: "%",
+      protein: "Protein", carbs: "Carbs", fat: "Fat", proteinByMeal: "Protein by meal:",
+      slotHint: (s) => `Foods you tap are logged to ${s}. Meals go to their own slot.`,
+      noPresets: 'No meals yet. In the log, tap "Save as meal" on any meal to log it in one tap next time.',
+      deleteMealAria: (n) => `Delete meal ${n}`, tapAgainDelete: "Tap again to delete", del: "Delete", confirm: "Confirm", edit: "Edit",
+      gProtein: (n) => `${n}g protein`, proteinWord: "protein",
+      removedFood: (n) => `Removed ${n} from your foods (logged entries stay)`, deletedMeal: (n) => `Deleted meal ${n}`,
+      deleteFailed: "Couldn't delete. Try again in a moment.",
+      all: "All", loadingFoods: "Loading foods…", editAria: (n) => `Edit ${n}`, oneServing: "1 serving",
+      thisWeek: (n) => `${n}× this week`, removeFromFoodsAria: (n) => `Remove ${n} from foods`,
+      lessAria: (n) => `One less ${n}`, moreAria: (n) => `One more ${n}`,
+      emptyFoods: 'Your food list is empty. Tap "One-off entry" below and check "Also save to my foods" to add the first one.',
+      noMatch: (q) => `No match for "${q}".`,
+      newFood: "+ New food", newFoodSub: "Add to your foods",
+      oneOff: "+ One-off entry", oneOffSub: "Eating out, takeout, anything not listed",
+      loading: "Loading…",
+      nothingLogged: (today, s) => `Nothing logged ${today ? "today" : "for this day"} yet. Tap a meal or a food to log it to ${s}.`,
+      saveAsMeal: "Save as meal", clearMeal: "Clear meal", decrease: "Decrease", increase: "Increase", servings: "Servings",
+      deleteAria: (n) => `Delete ${n}`, close: "Close",
+      tAdd: (s, n) => `${s}: ${n} +1`, tMinus: (s, n) => `${s}: ${n} −1`, tLogged: (s, n) => `${s}: ${n}`,
+      tMissing: (k, n) => `${k} item${k === 1 ? "" : "s"} in ${n} no longer exist in your foods and weren't logged`,
+      tDeleted: (n) => `Deleted ${n}`, tCleared: (s) => `Cleared ${s}`,
+      storageFull: "Storage is full, so this wasn't saved. Delete some old entries and try again.",
+      saveRetry: "Couldn't save. It will retry on your next change.",
+      editFood: "Edit food", newFoodTitle: "New food", oneOffTitle: "One-off entry",
+      lblNameEnReq: "Name *", lblNameEnOpt: "English name (optional, auto-translated if blank)",
+      lblNameZhReq: "Chinese name *", lblNameZhOpt: "Chinese name (optional, auto-translated if blank)",
+      lblUnitEnPri: "Serving size", lblUnitEnOpt: "English serving (optional, auto-translated)",
+      lblUnitZhPri: "Chinese serving", lblUnitZhOpt: "Chinese serving (optional, auto-translated)",
+      phName: "e.g. Korean BBQ with friends", phNameZh: "例如：韩式烤肉聚餐", phUnit: "1 serving / 200 ml / 100 g", phUnitZh: "1 份 / 200 ml / 100 g",
+      translating: "Translating…", translateFailed: "Saved, but the automatic translation didn't work. You can add it later with Edit.",
+      savedName: (n) => `Saved: ${n}`,
+      lblCat: "Category", lblKcal: "Calories (kcal)", lblP: "Protein (g)", lblC: "Carbs (g)", lblF: "Fat (g)",
+      alsoSave: "Also save to my foods", cancel: "Cancel", save: "Save", logTo: (s) => `Log to ${s}`,
+      errNameReq: "Enter an English name.", errKcal: "Enter calories (0 is fine).",
+      errSaveFoods: "Couldn't save it to your foods, so it's logged this once only.",
+      saved: "Saved", addedToFoods: (n) => `Added to your foods: ${n}`, saveFailed: "Couldn't save. Try again in a moment.",
+      mealName: "Meal name", myMeal: (s) => `My ${s}`, logToLbl: "Log to",
+      skippedNote: (k) => `${k} one-off item${k === 1 ? " isn't" : "s aren't"} in your foods and won't be included.`,
+      saveMeal: "Save meal", errMealName: "Enter a meal name.", savedMeal: (n) => `Saved meal: ${n}`,
+      dailyTargets: "Daily targets", proteinG: "Protein g", carbsG: "Carbs g", fatG: "Fat g",
+      defaultTrainDays: "Default training days (switch any single day at the top)", saveTargets: "Save targets",
+      mealsSec: "Meals", deletedPh: "(deleted)", noMealsShort: "No meals yet.", foodsSec: (n) => `Foods (${n})`,
+      targetsSaved: "Targets saved", targetsFailed: "Couldn't save targets. Try again in a moment.", mealDeleted: "Meal deleted",
+      loadFailed: "Couldn't load. Try again in a moment.",
+      avgCal: "7-day avg calories", avgP: "7-day avg protein", kcalDays: (n) => `kcal · ${n} day${n === 1 ? "" : "s"} logged`,
+      histNote: "The green line is each day's target. Tap a day to view it or fill it in.", notLogged: "Not logged",
+    },
+    zh: {
+      langBtn: "EN", langAria: "Switch to English",
+      today: "今天", backToday: "回到今天", prevDay: "前一天", nextDay: "后一天",
+      dayTypeGroup: "今天是训练日还是休息日", trainingDay: "训练日", restDay: "休息日",
+      noDb: "这个页面需要在 claude.ai 里登录后打开，才能读写你的记录。",
+      summaryAria: "今日营养汇总", pickerAria: "点选记录", slotsAria: "记到哪一餐", logAria: "今天吃了什么",
+      presetsH: "套餐 · 一键记整顿", presetsHManage: "管理套餐 · 点两下删除",
+      foodsH: "常吃食物 · 点一下加一份，− / + 调整", foodsHManage: "管理食物 · 点食物编辑，点「删除」移除",
+      manage: "管理", done: "完成", searchPh: "搜索食物", logH: "记录", last14: "近 14 天", targetsFoods: "目标与食物库", undo: "撤销",
+      items: (n) => `${n} 项`,
+      kcalLeftMini: (n) => `还剩 <b>${n}</b> kcal`, kcalOverMini: (n) => `超出 <b class="over">${n}</b> kcal`,
+      proteinMini: (a, b) => `蛋白 <b>${a}</b> / ${b} g`,
+      factsTitle: "营养成分表", targetSub: (train, items) => `${train ? "训练日" : "休息日"}目标 · ${items}`,
+      calories: "能量", remainLeft: (n) => `还可以吃 ${n} kcal`, remainOver: (n) => `超出 ${n} kcal`,
+      colNutrient: "项目", colEaten: "已摄入 / 目标", colPct: "占比",
+      protein: "蛋白质", carbs: "碳水", fat: "脂肪", proteinByMeal: "蛋白分布：",
+      slotHint: (s) => `点食物会记到「${s}」，套餐会记到它自己的那一餐。`,
+      noPresets: "还没有套餐。在下方记录里点某一餐的「存为套餐」，以后就能一键记整顿。",
+      deleteMealAria: (n) => `删除套餐 ${n}`, tapAgainDelete: "再点一次删除", del: "删除", confirm: "确认", edit: "编辑",
+      gProtein: (n) => `${n}g 蛋白`, proteinWord: "蛋白",
+      removedFood: (n) => `已从食物库删除 ${n}（已记的记录不受影响）`, deletedMeal: (n) => `已删除套餐 ${n}`,
+      deleteFailed: "删除失败，请稍后再试。",
+      all: "全部", loadingFoods: "正在读取食物库…", editAria: (n) => `编辑 ${n}`, oneServing: "1 份",
+      thisWeek: (n) => `本周 ${n} 次`, removeFromFoodsAria: (n) => `从食物库删除 ${n}`,
+      lessAria: (n) => `${n} 减一份`, moreAria: (n) => `${n} 加一份`,
+      emptyFoods: "食物库还是空的。点下面「一次性记录」，勾选「同时存进常吃食物」就能加第一样。",
+      noMatch: (q) => `没有找到「${q}」。`,
+      newFood: "＋ 新食物", newFoodSub: "加进常吃食物",
+      oneOff: "＋ 一次性记录", oneOffSub: "聚餐、外卖、没在列表里的",
+      loading: "读取中…",
+      nothingLogged: (today, s) => `${today ? "今天" : "这天"}还没有记录。点套餐或常吃食物，就会记到「${s}」。`,
+      saveAsMeal: "存为套餐", clearMeal: "清空这餐", decrease: "减少", increase: "增加", servings: "份数",
+      deleteAria: (n) => `删除 ${n}`, close: "关闭",
+      tAdd: (s, n) => `${s}：${n} +1`, tMinus: (s, n) => `${s}：${n} −1`, tLogged: (s, n) => `${s}：${n}`,
+      tMissing: (k, n) => `${n} 里有 ${k} 样食物已被删掉，没有记上`,
+      tDeleted: (n) => `已删除 ${n}`, tCleared: (s) => `已清空${s}`,
+      storageFull: "存储已满，这条没有保存。删掉一些旧记录后再试。",
+      saveRetry: "这次没保存上，下次改动时会再试一次。",
+      editFood: "编辑食物", newFoodTitle: "新食物", oneOffTitle: "一次性记录",
+      lblNameEnReq: "英文名 *", lblNameEnOpt: "英文名（可选，不填会自动翻译）",
+      lblNameZhReq: "中文名 *", lblNameZhOpt: "中文名（可选，不填会自动翻译）",
+      lblUnitEnPri: "英文份量", lblUnitEnOpt: "英文份量（可选，不填会自动翻译）",
+      lblUnitZhPri: "一份是多少", lblUnitZhOpt: "中文份量（可选，不填会自动翻译）",
+      phName: "e.g. Korean BBQ with friends", phNameZh: "例如：韩式烤肉聚餐", phUnit: "1 serving / 200 ml / 100 g", phUnitZh: "1 份 / 200 ml / 100 g",
+      translating: "翻译中…", translateFailed: "已保存，但自动翻译没成功，之后可以在「编辑」里补上。",
+      savedName: (n) => `已保存：${n}`,
+      lblCat: "分类", lblKcal: "热量 kcal", lblP: "蛋白质 g", lblC: "碳水 g", lblF: "脂肪 g",
+      alsoSave: "同时存进常吃食物", cancel: "取消", save: "保存", logTo: (s) => `记到${s}`,
+      errNameReq: "请填写中文名。", errKcal: "请填热量（可以是 0）。",
+      errSaveFoods: "存进食物库失败，这次只记一次。",
+      saved: "已保存", addedToFoods: (n) => `已加入食物库：${n}`, saveFailed: "没保存上，请稍后再试。",
+      mealName: "套餐名", myMeal: (s) => `我的${s}`, logToLbl: "记到",
+      skippedNote: (k) => `有 ${k} 项是一次性记录，不在食物库里，不会放进套餐。`,
+      saveMeal: "保存套餐", errMealName: "请填套餐名。", savedMeal: (n) => `已存为套餐：${n}`,
+      dailyTargets: "每日目标", proteinG: "蛋白 g", carbsG: "碳水 g", fatG: "脂肪 g",
+      defaultTrainDays: "默认训练日（某一天可以在顶部单独切换）", saveTargets: "保存目标",
+      mealsSec: "套餐", deletedPh: "（已删）", noMealsShort: "还没有套餐。", foodsSec: (n) => `常吃食物（${n}）`,
+      targetsSaved: "目标已保存", targetsFailed: "目标没保存上，请稍后再试。", mealDeleted: "套餐已删除",
+      loadFailed: "读取失败，请稍后再试。",
+      avgCal: "近 7 天日均热量", avgP: "近 7 天日均蛋白", kcalDays: (n) => `kcal · ${n} 天有记录`,
+      histNote: "绿色竖线是当天目标。点某一天可以跳过去查看或补记。", notLogged: "没记录",
+    },
+  };
+  let LANG = "en";
+  try { const v = localStorage.getItem("dietlog.lang"); if (v === "zh" || v === "en") LANG = v; } catch (e) {}
+  const t = (k, ...a) => { const v = I18N[LANG][k] ?? I18N.en[k]; return typeof v === "function" ? v(...a) : v; };
+
   const SLOTS = [
-    { id: "b", name: "Breakfast" }, { id: "l", name: "Lunch" }, { id: "d", name: "Dinner" }, { id: "s", name: "Snack" },
+    { id: "b", en: "Breakfast", zh: "早餐" }, { id: "l", en: "Lunch", zh: "午餐" },
+    { id: "d", en: "Dinner", zh: "晚餐" }, { id: "s", en: "Snack", zh: "加餐" },
   ];
   const CATS = ["Eggs & Dairy", "Meat & Seafood", "Grains", "Fruit & Veg", "Snacks & Protein", "Sauces & Oils", "Eating Out", "Other"];
-  const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const CAT_ZH = { "All": "全部", "Eggs & Dairy": "蛋奶", "Meat & Seafood": "肉海鲜", "Grains": "主食", "Fruit & Veg": "蔬果", "Snacks & Protein": "零食补剂", "Sauces & Oils": "调料油", "Eating Out": "外食", "Other": "其他" };
+  const WD_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const WD_ZH = ["日", "一", "二", "三", "四", "五", "六"];
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
   const DEFAULT_TARGETS = {
     train: { kcal: 2200, p: 145, c: 290, f: 50 },
     rest: { kcal: 1780, p: 145, c: 130, f: 80 },
@@ -374,9 +513,32 @@ button { cursor: pointer; }
   const parseDate = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
   const shiftDate = (s, n) => { const d = parseDate(s); d.setDate(d.getDate() + n); return fmtDate(d); };
   const todayStr = () => fmtDate(new Date());
-  const dateLabel = (s) => { const d = parseDate(s); return `${WD[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}`; };
-  const slotName = (id) => (SLOTS.find((s) => s.id === id) || SLOTS[3]).name;
   const num = (v, d = 0) => { const n = parseFloat(v); return Number.isFinite(n) ? n : d; };
+  const wd = (i) => (LANG === "zh" ? WD_ZH[i] : WD_EN[i]);
+  const dateLabel = (s) => {
+    const d = parseDate(s);
+    return LANG === "zh" ? `${d.getMonth() + 1}月${d.getDate()}日 周${WD_ZH[d.getDay()]}` : `${WD_EN[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}`;
+  };
+  const shortDate = (s) => {
+    const d = parseDate(s);
+    return LANG === "zh" ? `${d.getMonth() + 1}/${d.getDate()} 周${WD_ZH[d.getDay()]}` : `${WD_EN[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`;
+  };
+  const slotName = (id) => { const s = SLOTS.find((x) => x.id === id) || SLOTS[3]; return s[LANG]; };
+  const catLabel = (c) => (LANG === "zh" ? CAT_ZH[c] || c : c);
+  const collator = () => (LANG === "zh" ? new Intl.Collator("zh-Hans-CN-u-co-pinyin", { numeric: true }) : new Intl.Collator("en", { sensitivity: "base", numeric: true }));
+
+  // display names: each food has an English `name` and an optional Chinese `zh` (plus `unit` / `unit_zh`)
+  const fname = (f) => (LANG === "zh" && f.zh ? f.zh : f.name || f.zh || "");
+  const funit = (f) => (LANG === "zh" && f.unit_zh ? f.unit_zh : f.unit || t("oneServing"));
+  const foodById = (id) => state.foods.find((f) => f.id === id);
+  const ename = (e) => {
+    const f = e.food && foodById(e.food);
+    return LANG === "zh" ? e.zh || (f && f.zh) || e.name : e.name || (f && f.name) || e.zh || "";
+  };
+  const eunit = (e) => {
+    const f = e.food && foodById(e.food);
+    return LANG === "zh" ? e.unit_zh || (f && f.unit_zh) || e.unit || t("oneServing") : e.unit || t("oneServing");
+  };
 
   function autoSlot() {
     const h = new Date().getHours() + new Date().getMinutes() / 60;
@@ -402,6 +564,9 @@ button { cursor: pointer; }
     flashId: null,
     manage: false,
     armed: null,
+    recent: {},        // foodId -> { n: times logged in the last 7 days, q: servings }
+    recentLoaded: false,
+    order: null,       // frozen tile order; refreshed on load and on slot/category/language changes, not on every tap
   };
 
   /* ---------- derived ---------- */
@@ -410,7 +575,6 @@ button { cursor: pointer; }
   const totals = (entries) => entries.reduce((a, e) => {
     a.kcal += e.kcal * e.qty; a.p += e.p * e.qty; a.c += e.c * e.qty; a.f += e.f * e.qty; return a;
   }, { kcal: 0, p: 0, c: 0, f: 0 });
-  const foodById = (id) => state.foods.find((f) => f.id === id);
 
   /* ---------- day persistence: one serialized write at a time ---------- */
   let flushTimer = null, writing = false, dirty = false, chain = Promise.resolve(), unsubDay = null;
@@ -438,8 +602,8 @@ button { cursor: pointer; }
       if (body.date === state.day.date) dirty = true;
       const code = (e && e.code) || "error";
       if (code === "unavailable") setTimeout(flush, 1200 + Math.random() * 1200);
-      else if (code === "quota_exceeded") toast("Storage is full, so this wasn't saved. Delete some old entries and try again.");
-      else toast("Couldn't save. It will retry on your next change.");
+      else if (code === "quota_exceeded") toast(t("storageFull"));
+      else toast(t("saveRetry"));
     } finally {
       writing = false;
     }
@@ -484,16 +648,19 @@ button { cursor: pointer; }
   function pushFood(food, qty, slot) {
     const hit = state.day.entries.find((e) => e.food === food.id && e.meal === slot);
     if (hit) { hit.qty = r1(hit.qty + qty); return; }
-    state.day.entries.push({
-      id: uid(), food: food.id, name: food.name, unit: food.unit || "",
+    const entry = {
+      id: uid(), food: food.id, name: food.name || food.zh || "", unit: food.unit || "",
       qty: r1(qty), kcal: num(food.kcal), p: num(food.p), c: num(food.c), f: num(food.f),
       meal: slot, t: Date.now(),
-    });
+    };
+    if (food.zh) entry.zh = food.zh;
+    if (food.unit_zh) entry.unit_zh = food.unit_zh;
+    state.day.entries.push(entry);
   }
   function addFood(id) {
     const food = foodById(id);
     if (!food) return;
-    withUndo(`${slotName(state.slot)}: ${food.name} +1`, () => pushFood(food, 1, state.slot));
+    withUndo(t("tAdd", slotName(state.slot), fname(food)), () => pushFood(food, 1, state.slot));
     state.flashId = id;
     setTimeout(() => { if (state.flashId === id) { state.flashId = null; renderFoods(); } }, 380);
     renderFoods();
@@ -502,7 +669,7 @@ button { cursor: pointer; }
     const hits = state.day.entries.filter((e) => e.food === id && e.meal === state.slot);
     const e = hits[hits.length - 1];
     if (!e) return;
-    withUndo(`${slotName(state.slot)}: ${e.name} −1`, () => {
+    withUndo(t("tMinus", slotName(state.slot), ename(e)), () => {
       if (e.qty > 1) e.qty = r1(e.qty - 1);
       else state.day.entries = state.day.entries.filter((x) => x.id !== e.id);
     });
@@ -512,13 +679,13 @@ button { cursor: pointer; }
     if (!pr) return;
     const slot = pr.slot || state.slot;
     let missing = 0;
-    withUndo(`${slotName(slot)}: ${pr.name}`, () => {
+    withUndo(t("tLogged", slotName(slot), pr.name), () => {
       (pr.items || []).forEach((it) => {
         const food = foodById(it.food);
         if (food) pushFood(food, num(it.qty, 1), slot); else missing++;
       });
     });
-    if (missing) toast(`${plural(missing, "item")} in ${pr.name} no longer exist in your foods and weren't logged`);
+    if (missing) toast(t("tMissing", missing, pr.name));
   }
   function setQty(entryId, q) {
     const e = state.day.entries.find((x) => x.id === entryId);
@@ -530,66 +697,72 @@ button { cursor: pointer; }
   function removeEntry(entryId) {
     const e = state.day.entries.find((x) => x.id === entryId);
     if (!e) return;
-    withUndo(`Deleted ${e.name}`, () => { state.day.entries = state.day.entries.filter((x) => x.id !== entryId); });
+    withUndo(t("tDeleted", ename(e)), () => { state.day.entries = state.day.entries.filter((x) => x.id !== entryId); });
   }
-  function setDayType(t) {
-    state.day.dayType = t;
+  function setDayType(v) {
+    state.day.dayType = v;
     commitDay();
   }
 
   /* ---------- render ---------- */
+  function applyStatic() {
+    document.documentElement.lang = LANG === "zh" ? "zh-Hans" : "en";
+    document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = t(el.dataset.t); });
+    document.querySelectorAll("[data-t-aria]").forEach((el) => { el.setAttribute("aria-label", t(el.dataset.tAria)); });
+    document.querySelectorAll("[data-t-ph]").forEach((el) => { el.setAttribute("placeholder", t(el.dataset.tPh)); });
+  }
   function render() {
     renderTop(); renderFacts(); renderSlots(); renderPresets(); renderCats(); renderFoods(); renderLog();
   }
   function renderTop() {
     const isToday = state.date === todayStr();
-    $("dateTitle").textContent = (isToday ? "Today · " : "") + dateLabel(state.date);
+    $("dateTitle").textContent = (isToday ? t("today") + " · " : "") + dateLabel(state.date);
     $("todayBtn").hidden = isToday;
     $("nextDay").disabled = state.date >= todayStr();
     $("nextDay").style.opacity = state.date >= todayStr() ? ".3" : "1";
-    const t = dayTypeOf(state.day);
-    $("dtTrain").setAttribute("aria-pressed", String(t === "train"));
-    $("dtRest").setAttribute("aria-pressed", String(t === "rest"));
+    const ty = dayTypeOf(state.day);
+    $("dtTrain").setAttribute("aria-pressed", String(ty === "train"));
+    $("dtRest").setAttribute("aria-pressed", String(ty === "rest"));
     const tot = totals(state.day.entries), tg = targetOf(state.day);
     const left = tg.kcal - tot.kcal;
     $("mini").innerHTML =
-      `<span>${left >= 0 ? `<b>${fmt(left)}</b> kcal left` : `<span class="over"><b class="over">${fmt(-left)}</b> kcal over</span>`}</span>` +
-      `<span>Protein <b>${fmt(tot.p)}</b> / ${fmt(tg.p)} g</span>`;
+      `<span${left < 0 ? ' class="over"' : ""}>${left >= 0 ? t("kcalLeftMini", fmt(left)) : t("kcalOverMini", fmt(-left))}</span>` +
+      `<span>${t("proteinMini", fmt(tot.p), fmt(tg.p))}</span>`;
   }
-  function pct(v, t) { return t > 0 ? Math.round((v / t) * 100) : 0; }
-  function macroRow(cls, name, v, t) {
-    const p = pct(v, t), over = v > t * 1.05 && cls !== "pro";
+  function pct(v, tgt) { return tgt > 0 ? Math.round((v / tgt) * 100) : 0; }
+  function macroRow(cls, name, v, tgt) {
+    const p = pct(v, tgt), over = v > tgt * 1.05 && cls !== "pro";
     return `<div class="mrow ${cls}">
-      <div class="mrow-top"><span class="name">${name}</span><span class="val num"><b>${fmt(v)}</b> / ${fmt(t)} g</span><span class="pct num">${p}%</span></div>
+      <div class="mrow-top"><span class="name">${name}</span><span class="val num"><b>${fmt(v)}</b> / ${fmt(tgt)} g</span><span class="pct num">${p}%</span></div>
       <div class="track${over ? " over" : ""}"><i style="width:${Math.min(100, p)}%"></i></div></div>`;
   }
   function renderFacts() {
-    const tot = totals(state.day.entries), tg = targetOf(state.day), t = dayTypeOf(state.day);
+    const tot = totals(state.day.entries), tg = targetOf(state.day), ty = dayTypeOf(state.day);
     const left = tg.kcal - tot.kcal, p = pct(tot.kcal, tg.kcal);
     const bySlot = SLOTS.map((s) => {
       const st = totals(state.day.entries.filter((e) => e.meal === s.id));
-      return `<span>${s.name} <b class="num">${st.p ? fmt(st.p) + " g" : "–"}</b></span>`;
+      return `<span>${s[LANG]} <b class="num">${st.p ? fmt(st.p) + " g" : "–"}</b></span>`;
     }).join("");
     $("facts").innerHTML = `
-      <div class="facts-head"><h2>Nutrition Facts</h2><span class="facts-sub">${t === "train" ? "Training day" : "Rest day"} target · ${plural(state.day.entries.length, "item")}</span></div>
+      <div class="facts-head"><h2>${t("factsTitle")}</h2><span class="facts-sub">${t("targetSub", ty === "train", t("items", state.day.entries.length))}</span></div>
       <div class="rule-xl"></div>
       <div class="energy">
-        <div><div class="lbl">Calories</div><div class="kj num">≈ ${fmt(tot.kcal * 4.184)} kJ</div></div>
+        <div><div class="lbl">${t("calories")}</div><div class="kj num">≈ ${fmt(tot.kcal * 4.184)} kJ</div></div>
         <div class="energy-num num"><span class="big">${fmt(tot.kcal)}</span><span class="of">/ ${fmt(tg.kcal)} kcal · ${p}%</span></div>
       </div>
       <div class="track${left < 0 ? " over" : ""}"><i style="width:${Math.min(100, p)}%"></i></div>
-      <div class="remain num${left < 0 ? " over" : ""}">${left >= 0 ? `${fmt(left)} kcal left` : `${fmt(-left)} kcal over target`}</div>
+      <div class="remain num${left < 0 ? " over" : ""}">${left >= 0 ? t("remainLeft", fmt(left)) : t("remainOver", fmt(-left))}</div>
       <div class="rule-m"></div>
-      <div class="facts-cols"><span>Nutrient</span><span>Eaten / Target</span><span>%</span></div>
-      ${macroRow("pro", "Protein", tot.p, tg.p)}
-      ${macroRow("carb", "Carbs", tot.c, tg.c)}
-      ${macroRow("fat", "Fat", tot.f, tg.f)}
+      <div class="facts-cols"><span>${t("colNutrient")}</span><span>${t("colEaten")}</span><span>${t("colPct")}</span></div>
+      ${macroRow("pro", t("protein"), tot.p, tg.p)}
+      ${macroRow("carb", t("carbs"), tot.c, tg.c)}
+      ${macroRow("fat", t("fat"), tot.f, tg.f)}
       <div class="rule-m" style="height:2px"></div>
-      <div class="split">Protein by meal: ${bySlot}</div>`;
+      <div class="split">${t("proteinByMeal")} ${bySlot}</div>`;
   }
   function renderSlots() {
-    $("slots").innerHTML = SLOTS.map((s) => `<button data-slot="${s.id}" aria-pressed="${s.id === state.slot}">${s.name}</button>`).join("");
-    $("slotHint").textContent = `Foods you tap are logged to ${slotName(state.slot)}. Meals go to their own slot.`;
+    $("slots").innerHTML = SLOTS.map((s) => `<button data-slot="${s.id}" aria-pressed="${s.id === state.slot}">${s[LANG]}</button>`).join("");
+    $("slotHint").textContent = t("slotHint", slotName(state.slot));
   }
   function presetKcal(pr) {
     return (pr.items || []).reduce((a, it) => { const f = foodById(it.food); return f ? { k: a.k + f.kcal * it.qty, p: a.p + f.p * it.qty } : a; }, { k: 0, p: 0 });
@@ -597,16 +770,16 @@ button { cursor: pointer; }
   function renderPresets() {
     const el = $("presets");
     if (!state.presets.length) {
-      el.innerHTML = `<p class="muted">No meals yet. In the log, tap "Save as meal" on any meal to log it in one tap next time.</p>`;
+      el.innerHTML = `<p class="muted">${t("noPresets")}</p>`;
       return;
     }
     el.innerHTML = state.presets.map((pr) => {
       const s = presetKcal(pr);
       if (state.manage) {
         const armed = state.armed && state.armed.kind === "preset" && state.armed.id === pr.id;
-        return `<button class="preset managing${armed ? " armed" : ""}" data-rmpreset="${esc(pr.id)}" aria-label="Delete meal ${esc(pr.name)}"><b>${esc(pr.name)}</b><span class="rm-label">${armed ? "Tap again to delete" : "Delete"}</span></button>`;
+        return `<button class="preset managing${armed ? " armed" : ""}" data-rmpreset="${esc(pr.id)}" aria-label="${esc(t("deleteMealAria", pr.name))}"><b>${esc(pr.name)}</b><span class="rm-label">${armed ? t("tapAgainDelete") : t("del")}</span></button>`;
       }
-      return `<button class="preset" data-preset="${esc(pr.id)}"><b>${esc(pr.name)}</b><span class="num">${fmt(s.k)} kcal · ${fmt(s.p)}g protein</span></button>`;
+      return `<button class="preset" data-preset="${esc(pr.id)}"><b>${esc(pr.name)}</b><span class="num">${fmt(s.k)} kcal · ${t("gProtein", fmt(s.p))}</span></button>`;
     }).join("");
   }
   /* two-tap delete for foods and presets in manage mode */
@@ -620,71 +793,78 @@ button { cursor: pointer; }
   async function confirmRemove(kind, id) {
     clearTimeout(armTimer);
     state.armed = null;
-    const name = kind === "food" ? (foodById(id) || {}).name : (state.presets.find((p) => p.id === id) || {}).name;
+    const name = kind === "food" ? fname(foodById(id) || {}) : (state.presets.find((p) => p.id === id) || {}).name;
     try {
       await state.db.doc((kind === "food" ? "foods/" : "presets/") + id).delete();
       if (kind === "food") state.foods = state.foods.filter((f) => f.id !== id);
       else state.presets = state.presets.filter((p) => p.id !== id);
-      toast(kind === "food" ? `Removed ${name} from your foods (logged entries stay)` : `Deleted meal ${name}`);
+      toast(kind === "food" ? t("removedFood", name) : t("deletedMeal", name));
     } catch (e) {
-      toast("Couldn't delete. Try again in a moment.");
+      toast(t("deleteFailed"));
     }
     renderCats(); renderPresets(); renderFoods();
   }
   function renderCats() {
     const present = CATS.filter((c) => state.foods.some((f) => (f.cat || "Other") === c));
-    $("cats").innerHTML = ["All", ...present].map((c) => `<button class="cat" data-cat="${esc(c)}" aria-pressed="${c === state.cat}">${esc(c)}</button>`).join("");
+    $("cats").innerHTML = ["All", ...present].map((c) => `<button class="cat" data-cat="${esc(c)}" aria-pressed="${c === state.cat}">${esc(catLabel(c))}</button>`).join("");
   }
   function renderFoods() {
     const el = $("foods");
     if (state.noDb) { el.innerHTML = ""; return; }
-    if (!state.foodsLoaded) { el.innerHTML = `<p class="muted">Loading foods…</p>`; return; }
+    if (!state.foodsLoaded) { el.innerHTML = `<p class="muted">${t("loadingFoods")}</p>`; return; }
     const q = state.q.trim().toLowerCase();
-    const list = state.foods.filter((f) => (state.cat === "All" || (f.cat || "Other") === state.cat) && (!q || (f.name + " " + (f.unit || "")).toLowerCase().includes(q)));
+    if (!state.order) refreshOrder();
+    const pos = new Map(state.order.map((id, i) => [id, i]));
+    const coll = collator();
+    const list = state.foods
+      .filter((f) => (state.cat === "All" || (f.cat || "Other") === state.cat)
+        && (!q || [f.name, f.zh, f.unit, f.unit_zh].join(" ").toLowerCase().includes(q)))
+      .sort((a, b) => (pos.has(a.id) ? pos.get(a.id) : 1e6) - (pos.has(b.id) ? pos.get(b.id) : 1e6) || coll.compare(fname(a), fname(b)));
     const counts = {};
     state.day.entries.forEach((e) => { if (e.meal === state.slot && e.food) counts[e.food] = (counts[e.food] || 0) + e.qty; });
     el.classList.toggle("manage", state.manage);
     let html = list.map((f) => {
       const armed = state.armed && state.armed.kind === "food" && state.armed.id === f.id;
       const n = counts[f.id] || 0;
-      return `<div class="tile${!state.manage && n ? " has" : ""}"><button class="food${state.flashId === f.id ? " flash" : ""}" data-food="${esc(f.id)}"${state.manage ? ` aria-label="Edit ${esc(f.name)}"` : ""}>
-        <span class="food-name">${esc(f.name)}</span>
-        <span class="food-unit">${esc(f.unit || "1 serving")}</span>
-        <span class="food-nums num"><b>${fmt(f.kcal)}</b> kcal · <span class="p">${r1(num(f.p))}g</span> protein</span>
+      const nm = fname(f);
+      return `<div class="tile${!state.manage && n ? " has" : ""}"><button class="food${state.flashId === f.id ? " flash" : ""}" data-food="${esc(f.id)}"${state.manage ? ` aria-label="${esc(t("editAria", nm))}"` : ""}>
+        <span class="food-name">${esc(nm)}</span>
+        <span class="food-unit">${esc(funit(f))}${state.recent[f.id] ? ` · <span class="wk">${t("thisWeek", state.recent[f.id].n)}</span>` : ""}</span>
+        <span class="food-nums num"><b>${fmt(f.kcal)}</b> kcal · <span class="p">${r1(num(f.p))}g</span> ${t("proteinWord")}</span>
       </button>${state.manage
-        ? `<button class="rm${armed ? " armed" : ""}" data-rmfood="${esc(f.id)}" aria-label="Remove ${esc(f.name)} from foods">${armed ? "Confirm" : "Delete"}</button>`
-        : `<div class="step"><button data-minus="${esc(f.id)}" aria-label="One less ${esc(f.name)}"${n ? "" : " disabled"}>−</button><span class="cnt num${n ? "" : " zero"}" aria-live="polite">${fmtQty(n)}</span><button data-plus="${esc(f.id)}" aria-label="One more ${esc(f.name)}">+</button></div>`}</div>`;
+        ? `<button class="rm${armed ? " armed" : ""}" data-rmfood="${esc(f.id)}" aria-label="${esc(t("removeFromFoodsAria", nm))}">${armed ? t("confirm") : t("del")}</button>`
+        : `<div class="step"><button data-minus="${esc(f.id)}" aria-label="${esc(t("lessAria", nm))}"${n ? "" : " disabled"}>−</button><span class="cnt num${n ? "" : " zero"}" aria-live="polite">${fmtQty(n)}</span><button data-plus="${esc(f.id)}" aria-label="${esc(t("moreAria", nm))}">+</button></div>`}</div>`;
     }).join("");
-    if (!state.foods.length) html = `<p class="muted" style="grid-column:1/-1">Your food list is empty. Tap "One-off entry" below and check "Also save to my foods" to add the first one.</p>`;
-    else if (!list.length) html = `<p class="muted" style="grid-column:1/-1">No match for "${esc(state.q)}".</p>`;
+    if (!state.foods.length) html = `<p class="muted" style="grid-column:1/-1">${t("emptyFoods")}</p>`;
+    else if (!list.length) html = `<p class="muted" style="grid-column:1/-1">${esc(t("noMatch", state.q))}</p>`;
     html += state.manage
-      ? `<button class="food addnew" id="newFoodBtn">+ New food<br><span class="food-unit">Add to your foods</span></button>`
-      : `<button class="food addnew" id="customBtn">+ One-off entry<br><span class="food-unit">Eating out, takeout, anything not listed</span></button>`;
+      ? `<button class="food addnew" id="newFoodBtn">${t("newFood")}<br><span class="food-unit">${t("newFoodSub")}</span></button>`
+      : `<button class="food addnew" id="customBtn">${t("oneOff")}<br><span class="food-unit">${t("oneOffSub")}</span></button>`;
     el.innerHTML = html;
-    $("foodsH").textContent = state.manage ? "Manage foods · tap a food to edit, Delete to remove" : "Foods · tap to add, − / + to adjust";
-    $("presetsH").textContent = state.manage ? "Manage meals · tap twice to delete" : "Meals · log a whole meal in one tap";
-    document.querySelectorAll("[data-manage]").forEach((b) => { b.setAttribute("aria-pressed", String(state.manage)); b.textContent = state.manage ? "Done" : "Manage"; });
+    $("foodsH").textContent = state.manage ? t("foodsHManage") : t("foodsH");
+    $("presetsH").textContent = state.manage ? t("presetsHManage") : t("presetsH");
+    document.querySelectorAll("[data-manage]").forEach((b) => { b.setAttribute("aria-pressed", String(state.manage)); b.textContent = state.manage ? t("done") : t("manage"); });
   }
   function renderLog() {
     const el = $("log");
-    $("logCount").textContent = state.day.entries.length ? plural(state.day.entries.length, "item") : "";
+    $("logCount").textContent = state.day.entries.length ? t("items", state.day.entries.length) : "";
     if (state.noDb) { el.innerHTML = ""; return; }
-    if (!state.dayLoaded && state.db) { el.innerHTML = `<p class="empty">Loading…</p>`; return; }
+    if (!state.dayLoaded && state.db) { el.innerHTML = `<p class="empty">${t("loading")}</p>`; return; }
     const groups = SLOTS.map((s) => ({ s, items: state.day.entries.filter((e) => e.meal === s.id) })).filter((g) => g.items.length);
     if (!groups.length) {
-      el.innerHTML = `<p class="empty">Nothing logged ${state.date === todayStr() ? "today" : "for this day"} yet. Tap a meal or a food to log it to ${slotName(state.slot)}.</p>`;
+      el.innerHTML = `<p class="empty">${t("nothingLogged", state.date === todayStr(), slotName(state.slot))}</p>`;
       return;
     }
     el.innerHTML = groups.map(({ s, items }) => {
       const st = totals(items);
       return `<div class="meal">
-        <div class="meal-h"><b>${s.name}</b><span class="sum num">${fmt(st.kcal)} kcal · ${fmt(st.p)}g protein</span>
-          <span class="acts"><button class="link" data-savepreset="${s.id}">Save as meal</button><button class="link red" data-clearmeal="${s.id}">Clear meal</button></span></div>
+        <div class="meal-h"><b>${s[LANG]}</b><span class="sum num">${fmt(st.kcal)} kcal · ${t("gProtein", fmt(st.p))}</span>
+          <span class="acts"><button class="link" data-savepreset="${s.id}">${t("saveAsMeal")}</button><button class="link red" data-clearmeal="${s.id}">${t("clearMeal")}</button></span></div>
         ${items.map((e) => `<div class="entry">
-          <div class="en"><div>${esc(e.name)}</div><small class="num">${esc(e.unit || "1 serving")} · ${fmt(e.kcal)} kcal · ${r1(e.p)}g protein</small></div>
-          <div class="qty"><button data-dec="${e.id}" aria-label="Decrease">−</button><input class="num" id="q-${e.id}" type="number" inputmode="decimal" step="0.1" min="0.1" value="${fmtQty(e.qty)}" data-qty="${e.id}" aria-label="Servings"><button data-inc="${e.id}" aria-label="Increase">+</button></div>
+          <div class="en"><div>${esc(ename(e))}</div><small class="num">${esc(eunit(e))} · ${fmt(e.kcal)} kcal · ${t("gProtein", r1(e.p))}</small></div>
+          <div class="qty"><button data-dec="${e.id}" aria-label="${t("decrease")}">−</button><input class="num" id="q-${e.id}" type="number" inputmode="decimal" step="0.1" min="0.1" value="${fmtQty(e.qty)}" data-qty="${e.id}" aria-label="${t("servings")}"><button data-inc="${e.id}" aria-label="${t("increase")}">+</button></div>
           <div class="ekcal num">${fmt(e.kcal * e.qty)}</div>
-          <button class="del" data-del="${e.id}" aria-label="Delete ${esc(e.name)}">Delete</button>
+          <button class="del" data-del="${e.id}" aria-label="${esc(t("deleteAria", ename(e)))}">${t("del")}</button>
         </div>`).join("")}
       </div>`;
     }).join("");
@@ -722,66 +902,136 @@ button { cursor: pointer; }
   }
   $("overlay").addEventListener("click", (e) => { if (e.target === $("overlay")) { returnTo = null; closeSheet(); } });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("overlay").hidden) { returnTo = null; closeSheet(); } });
-  const sheetHead = (title) => `<div class="sheet-h"><h3>${title}</h3><button class="iconbtn" data-close aria-label="Close">×</button></div>`;
-  const catOptions = (sel) => CATS.map((c) => `<option value="${c}"${c === sel ? " selected" : ""}>${c}</option>`).join("");
+  const sheetHead = (title) => `<div class="sheet-h"><h3>${esc(title)}</h3><button class="iconbtn" data-close aria-label="${t("close")}">×</button></div>`;
+  const catOptions = (sel) => CATS.map((c) => `<option value="${esc(c)}"${c === sel ? " selected" : ""}>${esc(catLabel(c))}</option>`).join("");
 
   // food form: mode "new" | "edit" | "once"
+  // The current UI language's name is required; the other language is optional and,
+  // when left blank, is filled by asking Claude (the page cannot reach Google Translate).
+  let samplePromise = null;
+  const getSample = () => samplePromise || (samplePromise = (window.claude && typeof window.claude.use === "function"
+    ? window.claude.use("sample") : Promise.resolve(null)).catch(() => null));
+  async function translateFood(from, name, unit) {
+    const sample = await getSample();
+    if (!sample || typeof sample.json !== "function") return null;
+    const src = from === "zh" ? "Chinese" : "English";
+    const dst = from === "zh" ? "English" : "Simplified Chinese";
+    const prompt =
+      `Translate this item from a personal food log from ${src} to ${dst}. ` +
+      `It is a food name and its serving size. Keep brand names (e.g. Fairlife, Premier, Quest, McDonald's, Bibigo) as they are, ` +
+      `keep numbers and units such as g, ml, kcal, lb and oz unchanged, and keep it short like a product label.\n` +
+      `Reply with only a JSON object: {"name": "...", "unit": "..."}. Use "" for unit when the serving size is empty.\n\n` +
+      `Name: ${name}\nServing size: ${unit || ""}`;
+    try {
+      const v = await sample.json(prompt, { modelTier: "quick", cache: { gcTime: 86400000 } });
+      if (v && typeof v === "object") return { name: String(v.name || "").trim(), unit: String(v.unit || "").trim() };
+    } catch (e) { /* fall through: save without the translation */ }
+    return null;
+  }
+  const bothNames = (d) => {
+    const a = LANG === "zh" ? d.zh : d.name, b = LANG === "zh" ? d.name : d.zh;
+    return a && b && a !== b ? `${a} · ${b}` : a || b || "";
+  };
+
   function openFoodForm(mode, food, back) {
-    const f = food || { name: "", unit: mode === "once" ? "1 serving" : "", kcal: "", p: "", c: "", f: "", cat: "Other" };
+    const f = food || { name: "", zh: "", unit: mode === "once" ? "1 serving" : "", unit_zh: mode === "once" ? "1 份" : "", kcal: "", p: "", c: "", f: "", cat: "Other" };
     returnTo = back || null;
-    const title = mode === "edit" ? "Edit food" : mode === "new" ? "New food" : "One-off entry";
+    const zhUI = LANG === "zh";
+    const title = mode === "edit" ? t("editFood") : mode === "new" ? t("newFoodTitle") : t("oneOffTitle");
+    const enName = `<div class="field"><label for="ff-name">${zhUI ? t("lblNameEnOpt") : t("lblNameEnReq")}</label><input id="ff-name" value="${esc(f.name)}" placeholder="${esc(t("phName"))}"></div>`;
+    const zhName = `<div class="field"><label for="ff-zh">${zhUI ? t("lblNameZhReq") : t("lblNameZhOpt")}</label><input id="ff-zh" value="${esc(f.zh || "")}" placeholder="${esc(t("phNameZh"))}"></div>`;
+    const enUnit = `<div class="field"><label for="ff-unit">${zhUI ? t("lblUnitEnOpt") : t("lblUnitEnPri")}</label><input id="ff-unit" value="${esc(f.unit)}" placeholder="${esc(t("phUnit"))}"></div>`;
+    const zhUnit = `<div class="field"><label for="ff-unitzh">${zhUI ? t("lblUnitZhPri") : t("lblUnitZhOpt")}</label><input id="ff-unitzh" value="${esc(f.unit_zh || "")}" placeholder="${esc(t("phUnitZh"))}"></div>`;
     openSheet(`${sheetHead(title)}
       <form class="form" id="foodForm" novalidate>
-        <div class="field full"><label for="ff-name">Name</label><input id="ff-name" required value="${esc(f.name)}" placeholder="e.g. Korean BBQ with friends"></div>
-        <div class="field"><label for="ff-unit">Serving size</label><input id="ff-unit" value="${esc(f.unit)}" placeholder="1 serving / 200 ml / 100 g"></div>
-        <div class="field"><label for="ff-cat">Category</label><select id="ff-cat">${catOptions(f.cat || "Other")}</select></div>
-        <div class="field"><label for="ff-kcal">Calories (kcal)</label><input id="ff-kcal" type="number" inputmode="decimal" value="${esc(f.kcal)}"></div>
-        <div class="field"><label for="ff-p">Protein (g)</label><input id="ff-p" type="number" inputmode="decimal" value="${esc(f.p)}"></div>
-        <div class="field"><label for="ff-c">Carbs (g)</label><input id="ff-c" type="number" inputmode="decimal" value="${esc(f.c)}"></div>
-        <div class="field"><label for="ff-f">Fat (g)</label><input id="ff-f" type="number" inputmode="decimal" value="${esc(f.f)}"></div>
-        ${mode === "once" ? `<label class="check full"><input type="checkbox" id="ff-save"> Also save to my foods</label>` : ""}
+        ${zhUI ? zhName + enName + zhUnit + enUnit : enName + zhName + enUnit + zhUnit}
+        <div class="field full"><label for="ff-cat">${t("lblCat")}</label><select id="ff-cat">${catOptions(f.cat || "Other")}</select></div>
+        <div class="field"><label for="ff-kcal">${t("lblKcal")}</label><input id="ff-kcal" type="number" inputmode="decimal" value="${esc(f.kcal)}"></div>
+        <div class="field"><label for="ff-p">${t("lblP")}</label><input id="ff-p" type="number" inputmode="decimal" value="${esc(f.p)}"></div>
+        <div class="field"><label for="ff-c">${t("lblC")}</label><input id="ff-c" type="number" inputmode="decimal" value="${esc(f.c)}"></div>
+        <div class="field"><label for="ff-f">${t("lblF")}</label><input id="ff-f" type="number" inputmode="decimal" value="${esc(f.f)}"></div>
+        ${mode === "once" ? `<label class="check full"><input type="checkbox" id="ff-save"> ${t("alsoSave")}</label>` : ""}
         <p class="muted full" id="ff-err" hidden></p>
         <div class="sheet-actions full">
-          ${mode === "edit" ? `<button type="button" class="btn danger" id="ff-del">Delete</button>` : ""}
+          ${mode === "edit" ? `<button type="button" class="btn danger" id="ff-del">${t("del")}</button>` : ""}
           <span class="spacer"></span>
-          <button type="button" class="btn" data-close>Cancel</button>
-          <button type="submit" class="btn primary">${mode === "once" ? `Log to ${slotName(state.slot)}` : "Save"}</button>
+          <button type="button" class="btn" data-close>${t("cancel")}</button>
+          <button type="submit" class="btn primary" id="ff-submit">${mode === "once" ? t("logTo", slotName(state.slot)) : t("save")}</button>
         </div>
       </form>`, "food");
     const form = $("foodForm");
+    let busy = false;
     form.addEventListener("submit", async (ev) => {
       ev.preventDefault();
-      const data = {
-        name: $("ff-name").value.trim(), unit: $("ff-unit").value.trim() || "1 serving", cat: $("ff-cat").value,
-        kcal: num($("ff-kcal").value), p: num($("ff-p").value), c: num($("ff-c").value), f: num($("ff-f").value),
-      };
+      if (busy) return;
+      let name = $("ff-name").value.trim(), zh = $("ff-zh").value.trim();
+      let unit = $("ff-unit").value.trim(), unitZh = $("ff-unitzh").value.trim();
       const err = $("ff-err");
-      if (!data.name) { err.hidden = false; err.textContent = "Enter a name."; return; }
-      if (!(data.kcal > 0)) { err.hidden = false; err.textContent = "Enter calories (more than 0)."; return; }
+      const kcal = num($("ff-kcal").value);
+      if (zhUI ? !zh : !name) { err.hidden = false; err.textContent = t("errNameReq"); return; }
+      if ($("ff-kcal").value.trim() === "" || !(kcal >= 0)) { err.hidden = false; err.textContent = t("errKcal"); return; }
+      err.hidden = true;
+
+      // fill the other language when it was left blank
+      const needName = zhUI ? !name : !zh;
+      const srcUnit = zhUI ? unitZh : unit;
+      const needUnit = !!srcUnit && !(zhUI ? unit : unitZh);
+      let translateFailed = false;
+      if (needName || needUnit) {
+        busy = true;
+        const btn = $("ff-submit"), label = btn.textContent;
+        btn.disabled = true; btn.textContent = t("translating");
+        const tr = await translateFood(zhUI ? "zh" : "en", zhUI ? zh : name, srcUnit);
+        busy = false;
+        if (!$("ff-submit")) return; // the sheet was closed meanwhile
+        btn.disabled = false; btn.textContent = label;
+        if (tr && tr.name) {
+          if (needName) { if (zhUI) name = tr.name; else zh = tr.name; }
+          if (needUnit && tr.unit) { if (zhUI) unit = tr.unit; else unitZh = tr.unit; }
+        } else {
+          translateFailed = true;
+        }
+      }
+      if (!name) name = zh;
+      if (!unit) unit = unitZh || "1 serving";
+      const data = {
+        name, unit, cat: $("ff-cat").value,
+        kcal, p: num($("ff-p").value), c: num($("ff-c").value), f: num($("ff-f").value),
+      };
+      if (zh) data.zh = zh;
+      if (unitZh) data.unit_zh = unitZh;
+      const after = (msg) => toast(translateFailed ? t("translateFailed") : msg);
+
       if (mode === "once") {
-        let food = { id: null, ...data };
+        const foodRef = { id: null };
         if ($("ff-save").checked) {
           const id = "f-" + uid();
           data.sort = 900 + state.foods.length;
-          try { await state.db.doc("foods/" + id).set(data); food.id = id; }
-          catch (e) { err.hidden = false; err.textContent = "Couldn't save it to your foods, so it's logged this once only."; }
+          try { await state.db.doc("foods/" + id).set(data); foodRef.id = id; }
+          catch (e) { err.hidden = false; err.textContent = t("errSaveFoods"); }
         }
-        state.day.entries.push({ id: uid(), food: food.id, name: data.name, unit: data.unit, qty: 1, kcal: data.kcal, p: data.p, c: data.c, f: data.f, meal: state.slot, t: Date.now() });
+        const entry = { id: uid(), food: foodRef.id, name: data.name, unit: data.unit, qty: 1, kcal: data.kcal, p: data.p, c: data.c, f: data.f, meal: state.slot, t: Date.now() };
+        if (data.zh) entry.zh = data.zh;
+        if (data.unit_zh) entry.unit_zh = data.unit_zh;
+        state.day.entries.push(entry);
         commitDay();
         returnTo = null; closeSheet();
-        toast(`${slotName(state.slot)}: ${data.name}`);
+        after(t("tLogged", slotName(state.slot), bothNames(data)));
         return;
       }
       const id = mode === "edit" ? food.id : "f-" + uid();
       data.sort = mode === "edit" ? num(food.sort, 500) : 900 + state.foods.length;
-      try { await state.db.doc("foods/" + id).set(data); closeSheet(); toast(mode === "edit" ? "Saved" : `Added to your foods: ${data.name}`); }
-      catch (e) { err.hidden = false; err.textContent = "Couldn't save. Try again in a moment."; }
+      try {
+        await state.db.doc("foods/" + id).set(data);
+        closeSheet();
+        after(mode === "edit" ? t("savedName", bothNames(data)) : t("addedToFoods", bothNames(data)));
+      } catch (e) { err.hidden = false; err.textContent = t("saveFailed"); }
     });
     const del = $("ff-del");
     if (del) del.addEventListener("click", async () => {
-      if (!del.classList.contains("armed")) { del.classList.add("armed"); del.textContent = "Tap again to delete"; return; }
-      try { await state.db.doc("foods/" + food.id).delete(); closeSheet(); toast(`Removed ${food.name} from your foods (logged entries stay)`); }
-      catch (e) { $("ff-err").hidden = false; $("ff-err").textContent = "Couldn't delete. Try again in a moment."; }
+      if (!del.classList.contains("armed")) { del.classList.add("armed"); del.textContent = t("tapAgainDelete"); return; }
+      try { await state.db.doc("foods/" + food.id).delete(); closeSheet(); toast(t("removedFood", fname(food))); }
+      catch (e) { $("ff-err").hidden = false; $("ff-err").textContent = t("deleteFailed"); }
     });
   }
 
@@ -789,41 +1039,43 @@ button { cursor: pointer; }
     const items = state.day.entries.filter((e) => e.meal === slotId);
     const saved = items.filter((e) => e.food && foodById(e.food));
     const skipped = items.length - saved.length;
-    openSheet(`${sheetHead("Save as meal")}
+    openSheet(`${sheetHead(t("saveAsMeal"))}
       <form class="form" id="presetForm" novalidate>
-        <div class="field"><label for="pf-name">Meal name</label><input id="pf-name" value="My ${slotName(slotId)}"></div>
-        <div class="field"><label for="pf-slot">Log to</label><select id="pf-slot">${SLOTS.map((s) => `<option value="${s.id}"${s.id === slotId ? " selected" : ""}>${s.name}</option>`).join("")}</select></div>
-        <div class="list full">${saved.map((e) => `<div class="li"><div class="t">${esc(e.name)}<small>${esc(e.unit)}</small></div><span class="k num">×${fmtQty(e.qty)}</span><span class="k num">${fmt(e.kcal * e.qty)}</span></div>`).join("")}</div>
-        ${skipped ? `<p class="muted full">${plural(skipped, "one-off item")} ${skipped === 1 ? "isn't" : "aren't"} in your foods and won't be included.</p>` : ""}
+        <div class="field"><label for="pf-name">${t("mealName")}</label><input id="pf-name" value="${esc(t("myMeal", slotName(slotId)))}"></div>
+        <div class="field"><label for="pf-slot">${t("logToLbl")}</label><select id="pf-slot">${SLOTS.map((s) => `<option value="${s.id}"${s.id === slotId ? " selected" : ""}>${s[LANG]}</option>`).join("")}</select></div>
+        <div class="list full">${saved.map((e) => `<div class="li"><div class="t">${esc(ename(e))}<small>${esc(eunit(e))}</small></div><span class="k num">×${fmtQty(e.qty)}</span><span class="k num">${fmt(e.kcal * e.qty)}</span></div>`).join("")}</div>
+        ${skipped ? `<p class="muted full">${t("skippedNote", skipped)}</p>` : ""}
         <p class="muted full" id="pf-err" hidden></p>
-        <div class="sheet-actions full"><span class="spacer"></span><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary"${saved.length ? "" : " disabled"}>Save meal</button></div>
+        <div class="sheet-actions full"><span class="spacer"></span><button type="button" class="btn" data-close>${t("cancel")}</button><button type="submit" class="btn primary"${saved.length ? "" : " disabled"}>${t("saveMeal")}</button></div>
       </form>`, "preset");
     $("presetForm").addEventListener("submit", async (ev) => {
       ev.preventDefault();
       const name = $("pf-name").value.trim();
-      if (!name) { $("pf-err").hidden = false; $("pf-err").textContent = "Enter a meal name."; return; }
+      if (!name) { $("pf-err").hidden = false; $("pf-err").textContent = t("errMealName"); return; }
       const data = { name, slot: $("pf-slot").value, items: saved.map((e) => ({ food: e.food, qty: e.qty })), sort: 900 + state.presets.length };
-      try { await state.db.doc("presets/p-" + uid()).set(data); closeSheet(); toast(`Saved meal: ${name}`); }
-      catch (e) { $("pf-err").hidden = false; $("pf-err").textContent = "Couldn't save. Try again in a moment."; }
+      try { await state.db.doc("presets/p-" + uid()).set(data); closeSheet(); toast(t("savedMeal", name)); }
+      catch (e) { $("pf-err").hidden = false; $("pf-err").textContent = t("saveFailed"); }
     });
   }
 
   function openSettings() {
     const T = state.targets;
-    const trow = (key, label) => `<span class="rl">${label}</span>` + ["kcal", "p", "c", "f"].map((k) => `<input class="num" type="number" inputmode="decimal" id="t-${key}-${k}" value="${esc(T[key][k])}" aria-label="${label} ${k}">`).join("");
+    const trow = (key, label) => `<span class="rl">${label}</span>` + ["kcal", "p", "c", "f"].map((k) => `<input class="num" type="number" inputmode="decimal" id="t-${key}-${k}" value="${esc(T[key][k])}" aria-label="${esc(label)} ${k}">`).join("");
     const days = T.trainDays.slice();
-    openSheet(`${sheetHead("Targets &amp; foods")}
-      <div class="sec-h">Daily targets</div>
-      <div class="tgt"><span></span><span class="h">kcal</span><span class="h">Protein g</span><span class="h">Carbs g</span><span class="h">Fat g</span>
-        ${trow("train", "Training")}${trow("rest", "Rest")}</div>
-      <div class="sec-h">Default training days (switch any single day at the top)</div>
-      <div class="weekdays" id="wd">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-wd="${d}" aria-pressed="${days.includes(d)}">${WD[d]}</button>`).join("")}</div>
-      <div class="sheet-actions"><span class="spacer"></span><button class="btn primary" id="saveTargets">Save targets</button></div>
-      <div class="sec-h">Meals</div>
-      <div class="list">${state.presets.length ? state.presets.map((p) => { const s = presetKcal(p); return `<div class="li"><div class="t">${esc(p.name)}<small>${slotName(p.slot)} · ${(p.items || []).map((it) => { const f = foodById(it.food); return f ? esc(f.name) + " ×" + fmtQty(it.qty) : "(deleted)"; }).join(", ")}</small></div><span class="k num">${fmt(s.k)}</span><button class="btn danger" data-delpreset="${esc(p.id)}">Delete</button></div>`; }).join("") : `<p class="muted">No meals yet.</p>`}</div>
-      <div class="sec-h">Foods (${state.foods.length})</div>
-      <div class="sheet-actions"><button class="btn" id="newFood">+ New food</button></div>
-      <div class="list">${state.foods.map((f) => `<div class="li"><div class="t">${esc(f.name)}<small>${esc(f.unit)} · ${esc(f.cat || "Other")}</small></div><span class="k num">${fmt(f.kcal)} kcal</span><span class="li-acts"><button class="btn" data-editfood="${esc(f.id)}">Edit</button><button class="btn danger" data-delfood="${esc(f.id)}">Delete</button></span></div>`).join("")}</div>`, "settings");
+    const coll = collator();
+    const foods = state.foods.slice().sort((a, b) => coll.compare(fname(a), fname(b)));
+    openSheet(`${sheetHead(t("targetsFoods"))}
+      <div class="sec-h">${t("dailyTargets")}</div>
+      <div class="tgt"><span></span><span class="h">kcal</span><span class="h">${t("proteinG")}</span><span class="h">${t("carbsG")}</span><span class="h">${t("fatG")}</span>
+        ${trow("train", t("trainingDay"))}${trow("rest", t("restDay"))}</div>
+      <div class="sec-h">${t("defaultTrainDays")}</div>
+      <div class="weekdays" id="wd">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-wd="${d}" aria-pressed="${days.includes(d)}">${wd(d)}</button>`).join("")}</div>
+      <div class="sheet-actions"><span class="spacer"></span><button class="btn primary" id="saveTargets">${t("saveTargets")}</button></div>
+      <div class="sec-h">${t("mealsSec")}</div>
+      <div class="list">${state.presets.length ? state.presets.map((p) => { const s = presetKcal(p); return `<div class="li"><div class="t">${esc(p.name)}<small>${slotName(p.slot)} · ${(p.items || []).map((it) => { const f = foodById(it.food); return f ? esc(fname(f)) + " ×" + fmtQty(it.qty) : t("deletedPh"); }).join(LANG === "zh" ? "、" : ", ")}</small></div><span class="k num">${fmt(s.k)}</span><button class="btn danger" data-delpreset="${esc(p.id)}">${t("del")}</button></div>`; }).join("") : `<p class="muted">${t("noMealsShort")}</p>`}</div>
+      <div class="sec-h">${t("foodsSec", state.foods.length)}</div>
+      <div class="sheet-actions"><button class="btn" id="newFood">${t("newFood")}</button></div>
+      <div class="list">${foods.map((f) => `<div class="li"><div class="t">${esc(fname(f))}<small>${esc(funit(f))} · ${esc(catLabel(f.cat || "Other"))}</small></div><span class="k num">${fmt(f.kcal)} kcal</span><span class="li-acts"><button class="btn" data-editfood="${esc(f.id)}">${t("edit")}</button><button class="btn danger" data-delfood="${esc(f.id)}">${t("del")}</button></span></div>`).join("")}</div>`, "settings");
     $("wd").addEventListener("click", (e) => {
       const b = e.target.closest("[data-wd]"); if (!b) return;
       const d = Number(b.dataset.wd); const i = days.indexOf(d);
@@ -833,38 +1085,38 @@ button { cursor: pointer; }
     $("saveTargets").addEventListener("click", async () => {
       const read = (key) => ({ kcal: num($(`t-${key}-kcal`).value), p: num($(`t-${key}-p`).value), c: num($(`t-${key}-c`).value), f: num($(`t-${key}-f`).value) });
       const data = { train: read("train"), rest: read("rest"), trainDays: days.slice().sort() };
-      try { await state.db.doc("settings/targets").set(data); toast("Targets saved"); }
-      catch (e) { toast("Couldn't save targets. Try again in a moment."); }
+      try { await state.db.doc("settings/targets").set(data); toast(t("targetsSaved")); }
+      catch (e) { toast(t("targetsFailed")); }
     });
     $("newFood").addEventListener("click", () => openFoodForm("new", null, openSettings));
     $("sheet").querySelectorAll("[data-editfood]").forEach((b) => b.addEventListener("click", () => openFoodForm("edit", foodById(b.dataset.editfood), openSettings)));
     $("sheet").querySelectorAll("[data-delfood]").forEach((b) => b.addEventListener("click", async () => {
-      if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Confirm"; return; }
-      const id = b.dataset.delfood, name = (foodById(id) || {}).name;
+      if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = t("confirm"); return; }
+      const id = b.dataset.delfood, name = fname(foodById(id) || {});
       try {
         await state.db.doc("foods/" + id).delete();
         state.foods = state.foods.filter((f) => f.id !== id);
         renderCats(); renderPresets(); renderFoods();
-        toast(`Removed ${name} from your foods (logged entries stay)`);
+        toast(t("removedFood", name));
         openSettings();
-      } catch (e) { toast("Couldn't delete. Try again in a moment."); }
+      } catch (e) { toast(t("deleteFailed")); }
     }));
     $("sheet").querySelectorAll("[data-delpreset]").forEach((b) => b.addEventListener("click", async () => {
-      if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Confirm"; return; }
-      try { await state.db.doc("presets/" + b.dataset.delpreset).delete(); toast("Meal deleted"); openSettings(); }
-      catch (e) { toast("Couldn't delete. Try again in a moment."); }
+      if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = t("confirm"); return; }
+      try { await state.db.doc("presets/" + b.dataset.delpreset).delete(); toast(t("mealDeleted")); openSettings(); }
+      catch (e) { toast(t("deleteFailed")); }
     }));
   }
 
   async function openHistory() {
-    openSheet(`${sheetHead("Last 14 days")}<p class="muted">Loading…</p>`, "history");
+    openSheet(`${sheetHead(t("last14"))}<p class="muted">${t("loading")}</p>`, "history");
     const today = todayStr(), from = shiftDate(today, -13);
     let byDate = {};
     try {
       const snap = await state.db.collection("days").where("date", ">=", from).get();
       snap.docs.forEach((d) => { const v = d.data(); if (v && v.date) byDate[v.date] = clone(v); });
     } catch (e) {
-      if (sheetMode === "history") $("sheet").innerHTML = `${sheetHead("Last 14 days")}<p class="muted">Couldn't load. Try again in a moment.</p>`;
+      if (sheetMode === "history") $("sheet").innerHTML = `${sheetHead(t("last14"))}<p class="muted">${t("loadFailed")}</p>`;
       return;
     }
     if (state.date >= from) byDate[state.date] = clone(state.day);
@@ -879,25 +1131,33 @@ button { cursor: pointer; }
     const avgP = logged7.length ? logged7.reduce((a, r) => a + r.tot.p, 0) / logged7.length : 0;
     const max = Math.max(1, ...rows.map((r) => Math.max(r.tot.kcal, r.tg.kcal))) * 1.04;
     if (sheetMode !== "history") return;
-    $("sheet").innerHTML = `${sheetHead("Last 14 days")}
+    $("sheet").innerHTML = `${sheetHead(t("last14"))}
       <div class="hist-sum">
-        <div class="stat"><small>7-day avg calories</small><b class="num">${logged7.length ? fmt(avgK) : "–"}</b> <small>kcal · ${plural(logged7.length, "day")} logged</small></div>
-        <div class="stat"><small>7-day avg protein</small><b class="num">${logged7.length ? fmt(avgP) : "–"}</b> <small>g</small></div>
+        <div class="stat"><small>${t("avgCal")}</small><b class="num">${logged7.length ? fmt(avgK) : "–"}</b> <small>${t("kcalDays", logged7.length)}</small></div>
+        <div class="stat"><small>${t("avgP")}</small><b class="num">${logged7.length ? fmt(avgP) : "–"}</b> <small>g</small></div>
       </div>
-      <p class="muted">The green line is each day's target. Tap a day to view it or fill it in.</p>
+      <p class="muted">${t("histNote")}</p>
       <div>${rows.map((r) => {
         const has = r.day.entries && r.day.entries.length;
         const over = r.tot.kcal > r.tg.kcal;
-        const d = parseDate(r.d);
         return `<button class="hrow" data-goto="${r.d}">
-          <span class="d num">${WD[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}<small>${r.type === "train" ? "Training" : "Rest"}</small></span>
+          <span class="d num">${shortDate(r.d)}<small>${r.type === "train" ? t("trainingDay") : t("restDay")}</small></span>
           <span class="hbar">${has ? `<i class="${over ? "over" : ""}" style="width:${(r.tot.kcal / max) * 100}%"></i>` : ""}<span class="tick" style="left:calc(${(r.tg.kcal / max) * 100}% - 1px)"></span></span>
-          <span class="v num">${has ? `<b>${fmt(r.tot.kcal)}</b><span>${fmt(r.tot.p)}g</span>` : `<small class="muted">Not logged</small>`}</span>
+          <span class="v num">${has ? `<b>${fmt(r.tot.kcal)}</b><span>${fmt(r.tot.p)}g</span>` : `<small class="muted">${t("notLogged")}</small>`}</span>
         </button>`;
       }).join("")}</div>`;
   }
 
   /* ---------- events ---------- */
+  $("langBtn").addEventListener("click", () => {
+    LANG = LANG === "zh" ? "en" : "zh";
+    try { localStorage.setItem("dietlog.lang", LANG); } catch (e) {}
+    if (!$("overlay").hidden) { returnTo = null; closeSheet(); }
+    hideToast();
+    applyStatic();
+    refreshOrder();
+    render();
+  });
   $("sheet").addEventListener("click", (e) => {
     if (e.target.closest("[data-close]")) { returnTo = returnTo && sheetMode === "food" ? returnTo : null; closeSheet(); return; }
     const g = e.target.closest("[data-goto]");
@@ -908,7 +1168,7 @@ button { cursor: pointer; }
   $("todayBtn").addEventListener("click", () => goDate(todayStr()));
   $("dtTrain").addEventListener("click", () => setDayType("train"));
   $("dtRest").addEventListener("click", () => setDayType("rest"));
-  $("slots").addEventListener("click", (e) => { const b = e.target.closest("[data-slot]"); if (b) { state.slot = b.dataset.slot; renderSlots(); renderFoods(); } });
+  $("slots").addEventListener("click", (e) => { const b = e.target.closest("[data-slot]"); if (b) { state.slot = b.dataset.slot; refreshOrder(); renderSlots(); renderFoods(); } });
   $("presets").addEventListener("click", (e) => {
     if (!state.db) return;
     const rm = e.target.closest("[data-rmpreset]");
@@ -923,7 +1183,7 @@ button { cursor: pointer; }
     state.manage = !state.manage; state.armed = null; clearTimeout(armTimer);
     renderPresets(); renderFoods();
   }));
-  $("cats").addEventListener("click", (e) => { const b = e.target.closest("[data-cat]"); if (b) { state.cat = b.dataset.cat; renderCats(); renderFoods(); } });
+  $("cats").addEventListener("click", (e) => { const b = e.target.closest("[data-cat]"); if (b) { state.cat = b.dataset.cat; refreshOrder(); renderCats(); renderFoods(); } });
   $("search").addEventListener("input", (e) => { state.q = e.target.value; renderFoods(); });
   $("foods").addEventListener("click", (e) => {
     if (!state.db) return;
@@ -943,23 +1203,54 @@ button { cursor: pointer; }
     if (state.manage) openFoodForm("edit", foodById(b.dataset.food)); else addFood(b.dataset.food);
   });
   $("log").addEventListener("click", (e) => {
-    const t = e.target.closest("button"); if (!t) return;
+    const btn = e.target.closest("button"); if (!btn) return;
     const step = (id, d) => { const en = state.day.entries.find((x) => x.id === id); if (en) setQty(id, Math.max(0.5, r1(en.qty + d))); };
-    if (t.dataset.inc) step(t.dataset.inc, 0.5);
-    else if (t.dataset.dec) step(t.dataset.dec, -0.5);
-    else if (t.dataset.del) removeEntry(t.dataset.del);
-    else if (t.dataset.savepreset) openPresetForm(t.dataset.savepreset);
-    else if (t.dataset.clearmeal) {
-      const slot = t.dataset.clearmeal;
-      withUndo(`Cleared ${slotName(slot)}`, () => { state.day.entries = state.day.entries.filter((x) => x.meal !== slot); });
+    if (btn.dataset.inc) step(btn.dataset.inc, 0.5);
+    else if (btn.dataset.dec) step(btn.dataset.dec, -0.5);
+    else if (btn.dataset.del) removeEntry(btn.dataset.del);
+    else if (btn.dataset.savepreset) openPresetForm(btn.dataset.savepreset);
+    else if (btn.dataset.clearmeal) {
+      const slot = btn.dataset.clearmeal;
+      withUndo(t("tCleared", slotName(slot)), () => { state.day.entries = state.day.entries.filter((x) => x.meal !== slot); });
     }
   });
   $("log").addEventListener("change", (e) => { const i = e.target.closest("[data-qty]"); if (i) setQty(i.dataset.qty, num(i.value, 0)); });
   $("openHistory").addEventListener("click", () => { if (state.db) openHistory(); });
   $("openSettings").addEventListener("click", () => { if (state.db) openSettings(); });
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && (dirty || flushTimer)) flush(); });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden" && (dirty || flushTimer)) flush();
+    if (document.visibilityState === "visible" && state.recentLoaded) { refreshOrder(); renderFoods(); }
+  });
+
+  /* ---------- weekly ranking: times logged in the last 7 days, ties alphabetical (pinyin in Chinese) ---------- */
+  function refreshOrder() {
+    const r = (f) => state.recent[f.id] || { n: 0, q: 0 };
+    const coll = collator();
+    state.order = state.foods.slice()
+      .sort((a, b) => r(b).n - r(a).n || coll.compare(fname(a), fname(b)))
+      .map((f) => f.id);
+  }
+  function subscribeRecent() {
+    const from = shiftDate(todayStr(), -6);
+    state.db.collection("days").where("date", ">=", from).onSnapshot((snap) => {
+      const rec = {};
+      snap.docs.forEach((d) => {
+        const v = d.data() || {};
+        if (!v.date || v.date < from) return;
+        (v.entries || []).forEach((e) => {
+          if (!e.food) return;
+          const x = rec[e.food] || (rec[e.food] = { n: 0, q: 0 });
+          x.n += 1; x.q += num(e.qty, 1);
+        });
+      });
+      state.recent = rec;
+      if (!state.recentLoaded) { state.recentLoaded = true; refreshOrder(); }
+      renderFoods();
+    }, () => {});
+  }
 
   /* ---------- boot ---------- */
+  applyStatic();
   render();
   (async () => {
     let db = null;
@@ -968,7 +1259,8 @@ button { cursor: pointer; }
     state.db = db;
     db.collection("foods").onSnapshot((snap) => {
       state.foods = snap.docs.map((d) => Object.assign({ id: d.id }, clone(d.data())))
-        .sort((a, b) => num(a.sort, 999) - num(b.sort, 999) || String(a.name).localeCompare(String(b.name), "zh"));
+        .sort((a, b) => num(a.sort, 999) - num(b.sort, 999));
+      if (!state.foodsLoaded || !state.recentLoaded) refreshOrder();
       state.foodsLoaded = true;
       renderCats(); renderFoods(); renderPresets();
     }, () => { state.foodsLoaded = true; renderFoods(); });
@@ -987,6 +1279,7 @@ button { cursor: pointer; }
       }
     }, () => {});
     subscribeDay();
+    subscribeRecent();
   })();
 })();
 </script>

@@ -7,7 +7,9 @@
     "name": "Hard-boiled egg",
     "p": 6,
     "sort": 10,
-    "unit": "1 egg"
+    "unit": "1 egg",
+    "unit_zh": "1 个",
+    "zh": "水煮蛋"
   },
   "fairlife": {
     "c": 11,
@@ -17,7 +19,9 @@
     "name": "Fairlife 2% Chocolate Milk",
     "p": 11,
     "sort": 20,
-    "unit": "200 ml"
+    "unit": "200 ml",
+    "unit_zh": "200 ml",
+    "zh": "Fairlife 2% 巧克力奶"
   },
   "latte": {
     "c": 11,
@@ -27,7 +31,9 @@
     "name": "Latte (Fairlife chocolate milk)",
     "p": 11,
     "sort": 30,
-    "unit": "1 cup · 200 ml milk"
+    "unit": "1 cup · 200 ml milk",
+    "unit_zh": "1 杯 · 200 ml 奶",
+    "zh": "拿铁（Fairlife 巧克力奶）"
   },
   "swiss": {
     "c": 0.5,
@@ -37,17 +43,9 @@
     "name": "Swiss cheese",
     "p": 4,
     "sort": 50,
-    "unit": "1 slice"
-  },
-  "chicken": {
-    "c": 0,
-    "cat": "Meat & Seafood",
-    "f": 2.5,
-    "kcal": 120,
-    "name": "Chicken breast",
-    "p": 23,
-    "sort": 110,
-    "unit": "100 g raw"
+    "unit": "1 slice",
+    "unit_zh": "1 片",
+    "zh": "Swiss 芝士"
   },
   "beef": {
     "c": 0,
@@ -57,17 +55,21 @@
     "name": "93/7 ground beef",
     "p": 23,
     "sort": 120,
-    "unit": "¼ lb raw"
+    "unit": "¼ lb raw",
+    "unit_zh": "¼ lb 生重",
+    "zh": "93/7 牛肉末"
   },
-  "shrimp": {
-    "c": 0,
+  "beer-cod": {
+    "c": 22,
     "cat": "Meat & Seafood",
-    "f": 1,
-    "kcal": 90,
-    "name": "Shrimp",
-    "p": 20,
-    "sort": 130,
-    "unit": "15 pieces"
+    "f": 14,
+    "kcal": 280,
+    "name": "Beer-battered cod (Member's Mark)",
+    "p": 15,
+    "sort": 135,
+    "unit": "2 pieces · 142 g",
+    "unit_zh": "2 块 · 142 g",
+    "zh": "啤酒面糊炸鳕鱼（Member's Mark）"
   },
   "crab": {
     "c": 5,
@@ -77,7 +79,9 @@
     "name": "Crab meat",
     "p": 5,
     "sort": 140,
-    "unit": "1 serving"
+    "unit": "1 serving",
+    "unit_zh": "1 份",
+    "zh": "蟹肉"
   },
   "spam": {
     "c": 1,
@@ -87,7 +91,9 @@
     "name": "SPAM",
     "p": 5,
     "sort": 150,
-    "unit": "120 kcal serving"
+    "unit": "120 kcal serving",
+    "unit_zh": "120 kcal 一份",
+    "zh": "SPAM 午餐肉"
   },
   "turkey": {
     "c": 1,
@@ -97,7 +103,21 @@
     "name": "Turkey slice",
     "p": 4,
     "sort": 160,
-    "unit": "1 slice"
+    "unit": "1 slice",
+    "unit_zh": "1 片",
+    "zh": "火鸡肉片"
+  },
+  "amylu-basil-sausage": {
+    "c": 1,
+    "cat": "Meat & Seafood",
+    "f": 10,
+    "kcal": 150,
+    "name": "Amylu Basil & Cracked Black Pepper Chicken Sausage",
+    "p": 14,
+    "sort": 165,
+    "unit": "1 link (85 g)",
+    "unit_zh": "1 根（85 g）",
+    "zh": "Amylu 罗勒黑胡椒鸡肉肠"
   },
   "pepperoni": {
     "c": 0,
@@ -107,7 +127,9 @@
     "name": "Pepperoni",
     "p": 3,
     "sort": 170,
-    "unit": "5 slices"
+    "unit": "5 slices",
+    "unit_zh": "5 片",
+    "zh": "意式辣香肠 Pepperoni"
   },
   "bread": {
     "c": 14,
@@ -117,7 +139,9 @@
     "name": "Whole wheat bread",
     "p": 4,
     "sort": 210,
-    "unit": "1 slice"
+    "unit": "1 slice",
+    "unit_zh": "1 片",
+    "zh": "全麦面包"
   },
   "pasta": {
     "c": 71,
@@ -127,7 +151,9 @@
     "name": "Pasta",
     "p": 13,
     "sort": 220,
-    "unit": "100 g dry"
+    "unit": "100 g dry",
+    "unit_zh": "干重 100 g",
+    "zh": "意面"
   },
   "rice": {
     "c": 67,
@@ -137,7 +163,9 @@
     "name": "Bibigo Cooked Sticky White Rice",
     "p": 6,
     "sort": 230,
-    "unit": "1 bowl (210 g)"
+    "unit": "1 bowl (210 g)",
+    "unit_zh": "1 碗（210 g）",
+    "zh": "Bibigo 即食糯米饭"
   },
   "oats": {
     "c": 27,
@@ -147,7 +175,21 @@
     "name": "Oats",
     "p": 5,
     "sort": 240,
-    "unit": "40 g dry"
+    "unit": "40 g dry",
+    "unit_zh": "干重 40 g",
+    "zh": "燕麦"
+  },
+  "shin-ramyun": {
+    "c": 83,
+    "cat": "Grains",
+    "f": 16,
+    "kcal": 520,
+    "name": "Shin Ramyun",
+    "p": 11,
+    "sort": 250,
+    "unit": "1 bag · 120 g",
+    "unit_zh": "1 包 · 120 g",
+    "zh": "辛拉面"
   },
   "broc-mush": {
     "c": 7,
@@ -157,7 +199,9 @@
     "name": "Broccoli + mushrooms",
     "p": 3,
     "sort": 310,
-    "unit": "1 serving"
+    "unit": "1 serving",
+    "unit_zh": "1 份",
+    "zh": "西兰花 + 香菇"
   },
   "spinach": {
     "c": 1.5,
@@ -167,7 +211,9 @@
     "name": "Baby spinach",
     "p": 1,
     "sort": 320,
-    "unit": "1 handful"
+    "unit": "1 handful",
+    "unit_zh": "1 把",
+    "zh": "小菠菜"
   },
   "lettuce": {
     "c": 1,
@@ -177,7 +223,9 @@
     "name": "Lettuce",
     "p": 0.4,
     "sort": 330,
-    "unit": "2 leaves"
+    "unit": "2 leaves",
+    "unit_zh": "2 片",
+    "zh": "生菜"
   },
   "carrots": {
     "c": 8,
@@ -187,7 +235,9 @@
     "name": "Carrots",
     "p": 0.8,
     "sort": 335,
-    "unit": "1 handful (~85 g)"
+    "unit": "1 handful (~85 g)",
+    "unit_zh": "1 把（约 85 g）",
+    "zh": "胡萝卜"
   },
   "onion": {
     "c": 10,
@@ -197,7 +247,9 @@
     "name": "Onion",
     "p": 1.2,
     "sort": 336,
-    "unit": "1 medium (~110 g)"
+    "unit": "1 medium (~110 g)",
+    "unit_zh": "1 颗（约 110 g）",
+    "zh": "洋葱"
   },
   "banana": {
     "c": 27,
@@ -207,7 +259,9 @@
     "name": "Banana",
     "p": 1.3,
     "sort": 340,
-    "unit": "1 medium"
+    "unit": "1 medium",
+    "unit_zh": "1 根",
+    "zh": "香蕉"
   },
   "grapefruit": {
     "c": 7.5,
@@ -217,7 +271,9 @@
     "name": "Texas grapefruit",
     "p": 0.6,
     "sort": 350,
-    "unit": "¼ fruit"
+    "unit": "¼ fruit",
+    "unit_zh": "¼ 个",
+    "zh": "Texas 西柚"
   },
   "fairlife-shake": {
     "c": 3,
@@ -227,7 +283,9 @@
     "name": "Fairlife Nutrition Plan Protein Shake",
     "p": 30,
     "sort": 405,
-    "unit": "1 bottle (340 ml)"
+    "unit": "1 bottle (340 ml)",
+    "unit_zh": "1 瓶（340 ml）",
+    "zh": "Fairlife Nutrition Plan 蛋白奶昔"
   },
   "premier": {
     "c": 5,
@@ -237,7 +295,9 @@
     "name": "Premier Protein shake",
     "p": 30,
     "sort": 410,
-    "unit": "1 bottle"
+    "unit": "1 bottle",
+    "unit_zh": "1 瓶",
+    "zh": "Premier 蛋白奶昔"
   },
   "quest-chips": {
     "c": 5,
@@ -247,7 +307,9 @@
     "name": "Quest Protein Chips",
     "p": 20,
     "sort": 420,
-    "unit": "1 bag"
+    "unit": "1 bag",
+    "unit_zh": "1 袋",
+    "zh": "Quest 蛋白薯片"
   },
   "protein-bar": {
     "c": 22,
@@ -257,7 +319,9 @@
     "name": "Protein bar",
     "p": 20,
     "sort": 430,
-    "unit": "1 bar"
+    "unit": "1 bar",
+    "unit_zh": "1 根",
+    "zh": "蛋白棒"
   },
   "hummus": {
     "c": 12,
@@ -267,7 +331,9 @@
     "name": "Hummus",
     "p": 5,
     "sort": 440,
-    "unit": "180 kcal serving"
+    "unit": "180 kcal serving",
+    "unit_zh": "180 kcal 一份",
+    "zh": "鹰嘴豆泥"
   },
   "curry": {
     "c": 8,
@@ -277,7 +343,9 @@
     "name": "Curry roux",
     "p": 1,
     "sort": 510,
-    "unit": "1 block"
+    "unit": "1 block",
+    "unit_zh": "1 块",
+    "zh": "咖喱块"
   },
   "oil": {
     "c": 0,
@@ -287,7 +355,9 @@
     "name": "Cooking oil",
     "p": 0,
     "sort": 520,
-    "unit": "1 tbsp"
+    "unit": "1 tbsp",
+    "unit_zh": "1 汤匙",
+    "zh": "烹饪油"
   },
   "mcmuffin": {
     "c": 30,
@@ -297,7 +367,9 @@
     "name": "McDonald's Sausage McMuffin with Egg",
     "p": 21,
     "sort": 610,
-    "unit": "1 sandwich"
+    "unit": "1 sandwich",
+    "unit_zh": "1 个",
+    "zh": "麦当劳 猪柳蛋麦满分"
   },
   "mcgriddles": {
     "c": 45,
@@ -307,6 +379,32 @@
     "name": "McDonald's Sausage, Egg & Cheese McGriddles",
     "p": 20,
     "sort": 620,
-    "unit": "1 sandwich"
+    "unit": "1 sandwich",
+    "unit_zh": "1 个",
+    "zh": "麦当劳 香肠蛋芝士 McGriddles"
+  },
+  "sprite-zero": {
+    "c": 0,
+    "cat": "Other",
+    "f": 0,
+    "kcal": 0,
+    "name": "Sprite Zero (Lemon-Lime)",
+    "p": 0,
+    "sort": 700,
+    "unit": "1 can (355 ml)",
+    "unit_zh": "1 罐（355 ml）",
+    "zh": "雪碧 零卡（柠檬味）"
+  },
+  "f-mvpfepuh8okz": {
+    "c": 0,
+    "cat": "Meat & Seafood",
+    "f": 0.7,
+    "kcal": 110,
+    "name": "Shrimp",
+    "p": 26,
+    "sort": 926,
+    "unit": "10 pieces · large 31/40",
+    "unit_zh": "10 只",
+    "zh": "大虾（31/40）"
   }
 }
