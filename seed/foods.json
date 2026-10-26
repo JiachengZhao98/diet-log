@@ -268,5 +268,15 @@
     "p": 21,
     "sort": 610,
     "unit": "1 个"
+  },
+  "mcgriddles": {
+    "c": 45,
+    "cat": "外食",
+    "f": 32,
+    "kcal": 550,
+    "name": "麦当劳 Sausage, Egg & Cheese McGriddles",
+    "p": 20,
+    "sort": 620,
+    "unit": "1 个"
   }
 }

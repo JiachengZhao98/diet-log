@@ -39,7 +39,7 @@
 
 `seed/` 是食物库、套餐和目标的 JSON 导出，格式为 `{文档 id: 文档内容}`。营养值按常见包装标签估算，可以在页面上直接修改。
 
-- `seed/foods.json`：27 样常吃食物
+- `seed/foods.json`：28 样常吃食物
 - `seed/presets.json`：5 个套餐
 - `seed/settings.json`：训练日 2,200 kcal / 休息日 1,780 kcal，蛋白每天 145 g
 
