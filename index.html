@@ -129,6 +129,9 @@ button { cursor: pointer; }
 .energy { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
 .energy .lbl { font-weight: 900; font-size: 20px; font-stretch: 80%; }
 .energy .kj { font-size: 11.5px; color: var(--muted); }
+.unit-sw { display: inline-flex; margin-top: 4px; border: 1.5px solid var(--ink); border-radius: 999px; overflow: hidden; }
+.unit-sw button { border: 0; background: transparent; color: var(--ink); font-size: 11.5px; font-weight: 700; padding: 2px 9px; line-height: 1.4; }
+.unit-sw button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 .energy-num { text-align: right; }
 .energy-num .big { font-size: 46px; font-weight: 900; font-stretch: 78%; line-height: .95; letter-spacing: -0.02em; }
 .energy-num .of { display: block; font-size: 13px; color: var(--muted); }
@@ -244,7 +247,7 @@ button { cursor: pointer; }
 .meal-h .acts { margin-left: auto; display: flex; gap: 12px; }
 .link { border: 0; background: transparent; color: var(--accent); font-size: 13px; font-weight: 600; padding: 2px 0; }
 .link.red { color: var(--over); }
-.entry { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 6px; padding: 5px 0; }
+.entry { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 6px; padding: 5px 0; }
 .entry .en { min-width: 0; }
 .entry .en div { font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
 .entry .en small { font-size: 12px; color: var(--muted); }
@@ -392,10 +395,10 @@ button { cursor: pointer; }
       foodsH: "Foods · tap to add, − / + to adjust", foodsHManage: "Manage foods · tap a food to edit, Delete to remove",
       manage: "Manage", done: "Done", searchPh: "Search foods", logH: "Log", last14: "Last 14 days", targetsFoods: "Targets & foods", undo: "Undo",
       items: (n) => `${n} item${n === 1 ? "" : "s"}`,
-      kcalLeftMini: (n) => `<b>${n}</b> kcal left`, kcalOverMini: (n) => `<b class="over">${n}</b> kcal over`,
+      kcalLeftMini: (n, u) => `<b>${n}</b> ${u} left`, kcalOverMini: (n, u) => `<b class="over">${n}</b> ${u} over`,
       proteinMini: (a, b) => `Protein <b>${a}</b> / ${b} g`,
       factsTitle: "Nutrition Facts", targetSub: (train, items) => `${train ? "Training day" : "Rest day"} target · ${items}`,
-      calories: "Calories", remainLeft: (n) => `${n} kcal left`, remainOver: (n) => `${n} kcal over target`,
+      calories: "Calories", remainLeft: (n, u) => `${n} ${u} left`, remainOver: (n, u) => `${n} ${u} over target`, unitAria: "Energy unit",
       colNutrient: "Nutrient", colEaten: "Eaten / Target", colPct: "%",
       protein: "Protein", carbs: "Carbs", fat: "Fat", proteinByMeal: "Protein by meal:",
       slotHint: (s) => `Foods you tap are logged to ${s}. Meals go to their own slot.`,
@@ -428,7 +431,7 @@ button { cursor: pointer; }
       phName: "e.g. Korean BBQ with friends", phNameZh: "例如：韩式烤肉聚餐", phUnit: "1 serving / 200 ml / 100 g", phUnitZh: "1 份 / 200 ml / 100 g",
       translating: "Translating…", translateFailed: "Saved, but the automatic translation didn't work. You can add it later with Edit.",
       savedName: (n) => `Saved: ${n}`,
-      lblCat: "Category", lblKcal: "Calories (kcal)", lblP: "Protein (g)", lblC: "Carbs (g)", lblF: "Fat (g)",
+      lblCat: "Category", lblKcal: (u) => `Calories (${u})`, lblP: "Protein (g)", lblC: "Carbs (g)", lblF: "Fat (g)",
       alsoSave: "Also save to my foods", cancel: "Cancel", save: "Save", logTo: (s) => `Log to ${s}`,
       errNameReq: "Enter an English name.", errKcal: "Enter calories (0 is fine).",
       errSaveFoods: "Couldn't save it to your foods, so it's logged this once only.",
@@ -437,14 +440,14 @@ button { cursor: pointer; }
       skippedNote: (k) => `${k} one-off item${k === 1 ? " isn't" : "s aren't"} in your foods and won't be included.`,
       saveMeal: "Save meal", errMealName: "Enter a meal name.", savedMeal: (n) => `Saved meal: ${n}`,
       editTarget: "✎ Edit target", todayBadge: "Today", thisDayBadge: "This day",
-      macroSum: (m, k) => `Protein + carbs + fat ≈ ${m} kcal (target ${k})`,
+      macroSum: (m, k, u) => `Protein + carbs + fat ≈ ${m} ${u} (target ${k})`,
       errTargetKcal: "Enter a calorie target for both day types.", trainDaysOn: (l) => `Training days: ${l}`,
       dailyTargets: "Daily targets", proteinG: "Protein g", carbsG: "Carbs g", fatG: "Fat g",
       defaultTrainDays: "Default training days (switch any single day at the top)", saveTargets: "Save targets",
       mealsSec: "Meals", deletedPh: "(deleted)", noMealsShort: "No meals yet.", foodsSec: (n) => `Foods (${n})`,
       targetsSaved: "Targets saved", targetsFailed: "Couldn't save targets. Try again in a moment.", mealDeleted: "Meal deleted",
       loadFailed: "Couldn't load. Try again in a moment.",
-      avgCal: "7-day avg calories", avgP: "7-day avg protein", kcalDays: (n) => `kcal · ${n} day${n === 1 ? "" : "s"} logged`,
+      avgCal: "7-day avg calories", avgP: "7-day avg protein", kcalDays: (n, u) => `${u} · ${n} day${n === 1 ? "" : "s"} logged`,
       histNote: "The green line is each day's target. Tap a day to view it or fill it in.", notLogged: "Not logged",
     },
     zh: {
@@ -457,10 +460,10 @@ button { cursor: pointer; }
       foodsH: "常吃食物 · 点一下加一份，− / + 调整", foodsHManage: "管理食物 · 点食物编辑，点「删除」移除",
       manage: "管理", done: "完成", searchPh: "搜索食物", logH: "记录", last14: "近 14 天", targetsFoods: "目标与食物库", undo: "撤销",
       items: (n) => `${n} 项`,
-      kcalLeftMini: (n) => `还剩 <b>${n}</b> kcal`, kcalOverMini: (n) => `超出 <b class="over">${n}</b> kcal`,
+      kcalLeftMini: (n, u) => `还剩 <b>${n}</b> ${u}`, kcalOverMini: (n, u) => `超出 <b class="over">${n}</b> ${u}`,
       proteinMini: (a, b) => `蛋白 <b>${a}</b> / ${b} g`,
       factsTitle: "营养成分表", targetSub: (train, items) => `${train ? "训练日" : "休息日"}目标 · ${items}`,
-      calories: "能量", remainLeft: (n) => `还可以吃 ${n} kcal`, remainOver: (n) => `超出 ${n} kcal`,
+      calories: "能量", remainLeft: (n, u) => `还可以吃 ${n} ${u}`, remainOver: (n, u) => `超出 ${n} ${u}`, unitAria: "能量单位",
       colNutrient: "项目", colEaten: "已摄入 / 目标", colPct: "占比",
       protein: "蛋白质", carbs: "碳水", fat: "脂肪", proteinByMeal: "蛋白分布：",
       slotHint: (s) => `点食物会记到「${s}」，套餐会记到它自己的那一餐。`,
@@ -493,7 +496,7 @@ button { cursor: pointer; }
       phName: "e.g. Korean BBQ with friends", phNameZh: "例如：韩式烤肉聚餐", phUnit: "1 serving / 200 ml / 100 g", phUnitZh: "1 份 / 200 ml / 100 g",
       translating: "翻译中…", translateFailed: "已保存，但自动翻译没成功，之后可以在「编辑」里补上。",
       savedName: (n) => `已保存：${n}`,
-      lblCat: "分类", lblKcal: "热量 kcal", lblP: "蛋白质 g", lblC: "碳水 g", lblF: "脂肪 g",
+      lblCat: "分类", lblKcal: (u) => `热量 ${u}`, lblP: "蛋白质 g", lblC: "碳水 g", lblF: "脂肪 g",
       alsoSave: "同时存进常吃食物", cancel: "取消", save: "保存", logTo: (s) => `记到${s}`,
       errNameReq: "请填写中文名。", errKcal: "请填热量（可以是 0）。",
       errSaveFoods: "存进食物库失败，这次只记一次。",
@@ -502,19 +505,30 @@ button { cursor: pointer; }
       skippedNote: (k) => `有 ${k} 项是一次性记录，不在食物库里，不会放进套餐。`,
       saveMeal: "保存套餐", errMealName: "请填套餐名。", savedMeal: (n) => `已存为套餐：${n}`,
       editTarget: "✎ 改目标", todayBadge: "今天", thisDayBadge: "当天",
-      macroSum: (m, k) => `蛋白 + 碳水 + 脂肪合计约 ${m} kcal（目标 ${k}）`,
+      macroSum: (m, k, u) => `蛋白 + 碳水 + 脂肪合计约 ${m} ${u}（目标 ${k}）`,
       errTargetKcal: "训练日和休息日的热量目标都要填。", trainDaysOn: (l) => `训练日：${l}`,
       dailyTargets: "每日目标", proteinG: "蛋白 g", carbsG: "碳水 g", fatG: "脂肪 g",
       defaultTrainDays: "默认训练日（某一天可以在顶部单独切换）", saveTargets: "保存目标",
       mealsSec: "套餐", deletedPh: "（已删）", noMealsShort: "还没有套餐。", foodsSec: (n) => `常吃食物（${n}）`,
       targetsSaved: "目标已保存", targetsFailed: "目标没保存上，请稍后再试。", mealDeleted: "套餐已删除",
       loadFailed: "读取失败，请稍后再试。",
-      avgCal: "近 7 天日均热量", avgP: "近 7 天日均蛋白", kcalDays: (n) => `kcal · ${n} 天有记录`,
+      avgCal: "近 7 天日均热量", avgP: "近 7 天日均蛋白", kcalDays: (n, u) => `${u} · ${n} 天有记录`,
       histNote: "绿色竖线是当天目标。点某一天可以跳过去查看或补记。", notLogged: "没记录",
     },
   };
   let LANG = "en";
   try { const v = localStorage.getItem("dietlog.lang"); if (v === "zh" || v === "en") LANG = v; } catch (e) {}
+  // Energy unit: everything is stored in kcal; the page converts for display and input.
+  const KJ_PER_KCAL = 4.184;
+  let UNIT = "kcal";
+  try { const v = localStorage.getItem("dietlog.unit"); if (v === "kJ" || v === "kcal") UNIT = v; } catch (e) {}
+  const eNum = (kcal) => (UNIT === "kJ" ? kcal * KJ_PER_KCAL : kcal);       // kcal -> display number
+  const eFmt = (kcal) => Math.round(eNum(kcal)).toLocaleString("en-US");     // formatted, current unit
+  const eIn = (v) => (UNIT === "kJ" ? v / KJ_PER_KCAL : v);                  // typed value -> kcal
+  const eInputVal = (kcal) => (kcal === "" || kcal == null ? "" : String(Math.round(eNum(num(kcal)) * 10) / 10));
+  // Read an energy field back to kcal; an untouched field keeps its exact stored value (no rounding drift).
+  const readEnergy = (input, origKcal) => (input.value.trim() === input.dataset.shown && origKcal !== "" && origKcal != null
+    ? num(origKcal) : Math.round(eIn(num(input.value)) * 10) / 10);
   const t = (k, ...a) => { const v = I18N[LANG][k] ?? I18N.en[k]; return typeof v === "function" ? v(...a) : v; };
 
   const SLOTS = [
@@ -561,6 +575,21 @@ button { cursor: pointer; }
   const fname = (f) => (LANG === "zh" && f.zh ? f.zh : f.name || f.zh || "");
   const funit = (f) => (LANG === "zh" && f.unit_zh ? f.unit_zh : f.unit || t("oneServing"));
   const foodById = (id) => state.foods.find((f) => f.id === id);
+  const FRAC = { "¼": 0.25, "½": 0.5, "¾": 0.75 };
+  const PLURAL = { egg: "eggs", slice: "slices", bar: "bars", bag: "bags", bottle: "bottles", can: "cans", cup: "cups",
+    bowl: "bowls", link: "links", piece: "pieces", handful: "handfuls", sandwich: "sandwiches", block: "blocks",
+    serving: "servings", leaf: "leaves", pack: "packs", fruit: "fruits" };
+  const fmtAmt = (v) => String(Math.round(v * 100) / 100);
+  function scaleUnit(unit, qty) {
+    if (!unit || qty === 1) return unit;
+    const m = unit.match(/^\s*(\d+(?:\.\d+)?|[¼½¾])(\s*)(.*)$/);
+    // servings described by their energy ("120 kcal serving") or without a leading amount ("干重 40 g"): show "N × unit"
+    if (!m || /kcal|kJ/i.test(unit)) return `${fmtQty(qty)} × ${unit}`;
+    const base = FRAC[m[1]] ?? parseFloat(m[1]);
+    let rest = m[3];
+    if (qty !== 1) rest = rest.replace(/^([A-Za-z]+)\b/, (w) => PLURAL[w.toLowerCase()] || w);
+    return `${fmtAmt(base * qty)}${m[2]}${rest}`;
+  }
   const ename = (e) => {
     const f = e.food && foodById(e.food);
     return LANG === "zh" ? e.zh || (f && f.zh) || e.name : e.name || (f && f.name) || e.zh || "";
@@ -570,12 +599,13 @@ button { cursor: pointer; }
     return LANG === "zh" ? e.unit_zh || (f && f.unit_zh) || e.unit || t("oneServing") : e.unit || t("oneServing");
   };
 
-  function autoSlot() {
-    const h = new Date().getHours() + new Date().getMinutes() / 60;
-    if (h < 10.5) return "b";
-    if (h < 14) return "l";
-    if (h < 17) return "s";
-    if (h < 21.5) return "d";
+  // Meal slot from the device's local time (the user's time zone):
+  // 05:00–11:30 breakfast, 11:30–16:30 lunch, 16:30–21:00 dinner, 21:00–05:00 snack.
+  function autoSlot(now = new Date()) {
+    const m = now.getHours() * 60 + now.getMinutes();
+    if (m >= 5 * 60 && m < 11 * 60 + 30) return "b";
+    if (m >= 11 * 60 + 30 && m < 16 * 60 + 30) return "l";
+    if (m >= 16 * 60 + 30 && m < 21 * 60) return "d";
     return "s";
   }
   const emptyDay = (date) => ({ date, dayType: null, entries: [] });
@@ -589,6 +619,7 @@ button { cursor: pointer; }
     day: emptyDay(todayStr()),
     dayLoaded: false,
     slot: autoSlot(),
+    slotManual: false,
     cat: "All",
     q: "",
     flashId: null,
@@ -658,7 +689,7 @@ button { cursor: pointer; }
     state.date = d;
     state.day = emptyDay(d);
     state.dayLoaded = false;
-    if (d === todayStr()) state.slot = autoSlot();
+    if (d === todayStr()) { state.slot = autoSlot(); state.slotManual = false; }
     render();
     subscribeDay();
   }
@@ -756,7 +787,7 @@ button { cursor: pointer; }
     const tot = totals(state.day.entries), tg = targetOf(state.day);
     const left = tg.kcal - tot.kcal;
     $("mini").innerHTML =
-      `<span${left < 0 ? ' class="over"' : ""}>${left >= 0 ? t("kcalLeftMini", fmt(left)) : t("kcalOverMini", fmt(-left))}</span>` +
+      `<span${left < 0 ? ' class="over"' : ""}>${left >= 0 ? t("kcalLeftMini", eFmt(left), UNIT) : t("kcalOverMini", eFmt(-left), UNIT)}</span>` +
       `<span>${t("proteinMini", fmt(tot.p), fmt(tg.p))}</span>`;
   }
   function pct(v, tgt) { return tgt > 0 ? Math.round((v / tgt) * 100) : 0; }
@@ -778,11 +809,11 @@ button { cursor: pointer; }
       <div class="facts-sub">${t("targetSub", ty === "train", t("items", state.day.entries.length))}</div>
       <div class="rule-xl"></div>
       <div class="energy">
-        <div><div class="lbl">${t("calories")}</div><div class="kj num">≈ ${fmt(tot.kcal * 4.184)} kJ</div></div>
-        <div class="energy-num num"><span class="big">${fmt(tot.kcal)}</span><span class="of">/ ${fmt(tg.kcal)} kcal · ${p}%</span></div>
+        <div><div class="lbl">${t("calories")}</div><div class="kj num">≈ ${UNIT === "kJ" ? fmt(tot.kcal) + " kcal" : fmt(tot.kcal * KJ_PER_KCAL) + " kJ"}</div><div class="unit-sw" role="group" aria-label="${t("unitAria")}"><button data-unit="kcal" aria-pressed="${UNIT === "kcal"}">kcal</button><button data-unit="kJ" aria-pressed="${UNIT === "kJ"}">kJ</button></div></div>
+        <div class="energy-num num"><span class="big">${eFmt(tot.kcal)}</span><span class="of">/ ${eFmt(tg.kcal)} ${UNIT} · ${p}%</span></div>
       </div>
       <div class="track${left < 0 ? " over" : ""}"><i style="width:${Math.min(100, p)}%"></i></div>
-      <div class="remain num${left < 0 ? " over" : ""}">${left >= 0 ? t("remainLeft", fmt(left)) : t("remainOver", fmt(-left))}</div>
+      <div class="remain num${left < 0 ? " over" : ""}">${left >= 0 ? t("remainLeft", eFmt(left), UNIT) : t("remainOver", eFmt(-left), UNIT)}</div>
       <div class="rule-m"></div>
       <div class="facts-cols"><span>${t("colNutrient")}</span><span>${t("colEaten")}</span><span>${t("colPct")}</span></div>
       ${macroRow("pro", t("protein"), tot.p, tg.p)}
@@ -810,7 +841,7 @@ button { cursor: pointer; }
         const armed = state.armed && state.armed.kind === "preset" && state.armed.id === pr.id;
         return `<button class="preset managing${armed ? " armed" : ""}" data-rmpreset="${esc(pr.id)}" aria-label="${esc(t("deleteMealAria", pr.name))}"><b>${esc(pr.name)}</b><span class="rm-label">${armed ? t("tapAgainDelete") : t("del")}</span></button>`;
       }
-      return `<button class="preset" data-preset="${esc(pr.id)}"><b>${esc(pr.name)}</b><span class="num">${fmt(s.k)} kcal · ${t("gProtein", fmt(s.p))}</span></button>`;
+      return `<button class="preset" data-preset="${esc(pr.id)}"><b>${esc(pr.name)}</b><span class="num">${eFmt(s.k)} ${UNIT} · ${t("gProtein", fmt(s.p))}</span></button>`;
     }).join("");
   }
   /* two-tap delete for foods and presets in manage mode */
@@ -864,7 +895,7 @@ button { cursor: pointer; }
       return `<div class="tile${!state.manage && n ? " has" : ""}"><button class="food${state.flashId === f.id ? " flash" : ""}" data-food="${esc(f.id)}"${state.manage ? ` aria-label="${esc(t("editAria", nm))}"` : ""}>
         <span class="food-name">${esc(nm)}</span>
         <span class="food-unit">${esc(funit(f))}${state.recent[f.id] ? ` · <span class="wk">${t("thisWeek", state.recent[f.id].n)}</span>` : ""}</span>
-        <span class="food-nums num"><b>${fmt(f.kcal)}</b> kcal · <span class="p">${r1(num(f.p))}g</span> ${t("proteinWord")}</span>
+        <span class="food-nums num"><b>${eFmt(f.kcal)}</b> ${UNIT} · <span class="p">${r1(num(f.p))}g</span> ${t("proteinWord")}</span>
       </button>${state.manage
         ? `<button class="rm${armed ? " armed" : ""}" data-rmfood="${esc(f.id)}" aria-label="${esc(t("removeFromFoodsAria", nm))}">${armed ? t("confirm") : t("del")}</button>`
         : `<div class="step"><button data-minus="${esc(f.id)}" aria-label="${esc(t("lessAria", nm))}"${n ? "" : " disabled"}>−</button><span class="cnt num${n ? "" : " zero"}" aria-live="polite">${fmtQty(n)}</span><button data-plus="${esc(f.id)}" aria-label="${esc(t("moreAria", nm))}">+</button></div>`}</div>`;
@@ -889,12 +920,11 @@ button { cursor: pointer; }
     el.innerHTML = groups.map(({ s, items }) => {
       const st = totals(items);
       return `<div class="meal">
-        <div class="meal-h"><b>${s[LANG]}</b><span class="sum num">${fmt(st.kcal)} kcal · ${t("gProtein", fmt(st.p))}</span>
+        <div class="meal-h"><b>${s[LANG]}</b><span class="sum num">${eFmt(st.kcal)} ${UNIT} · ${t("gProtein", fmt(st.p))}</span>
           <span class="acts"><button class="link" data-savepreset="${s.id}">${t("saveAsMeal")}</button><button class="link red" data-clearmeal="${s.id}">${t("clearMeal")}</button></span></div>
         ${items.map((e) => `<div class="entry">
-          <div class="en"><div>${esc(ename(e))}</div><small class="num">${esc(eunit(e))} · ${fmt(e.kcal)} kcal · ${t("gProtein", r1(e.p))}</small></div>
+          <div class="en"><div>${esc(ename(e))}</div><small class="num">${esc(scaleUnit(eunit(e), e.qty))} · ${eFmt(e.kcal * e.qty)} ${UNIT} · ${t("gProtein", r1(e.p * e.qty))}</small></div>
           <div class="qty"><button data-dec="${e.id}" aria-label="${t("decrease")}">−</button><input class="num" id="q-${e.id}" type="number" inputmode="decimal" step="0.1" min="0.1" value="${fmtQty(e.qty)}" data-qty="${e.id}" aria-label="${t("servings")}"><button data-inc="${e.id}" aria-label="${t("increase")}">+</button></div>
-          <div class="ekcal num">${fmt(e.kcal * e.qty)}</div>
           <button class="del" data-del="${e.id}" aria-label="${esc(t("deleteAria", ename(e)))}">${t("del")}</button>
         </div>`).join("")}
       </div>`;
@@ -977,7 +1007,7 @@ button { cursor: pointer; }
       <form class="form" id="foodForm" novalidate>
         ${zhUI ? zhName + enName + zhUnit + enUnit : enName + zhName + enUnit + zhUnit}
         <div class="field full"><label for="ff-cat">${t("lblCat")}</label><select id="ff-cat">${catOptions(f.cat || "Other")}</select></div>
-        <div class="field"><label for="ff-kcal">${t("lblKcal")}</label><input id="ff-kcal" type="number" inputmode="decimal" value="${esc(f.kcal)}"></div>
+        <div class="field"><label for="ff-kcal">${t("lblKcal", UNIT)}</label><input id="ff-kcal" type="number" inputmode="decimal" value="${esc(eInputVal(f.kcal))}" data-shown="${esc(eInputVal(f.kcal))}"></div>
         <div class="field"><label for="ff-p">${t("lblP")}</label><input id="ff-p" type="number" inputmode="decimal" value="${esc(f.p)}"></div>
         <div class="field"><label for="ff-c">${t("lblC")}</label><input id="ff-c" type="number" inputmode="decimal" value="${esc(f.c)}"></div>
         <div class="field"><label for="ff-f">${t("lblF")}</label><input id="ff-f" type="number" inputmode="decimal" value="${esc(f.f)}"></div>
@@ -998,7 +1028,7 @@ button { cursor: pointer; }
       let name = $("ff-name").value.trim(), zh = $("ff-zh").value.trim();
       let unit = $("ff-unit").value.trim(), unitZh = $("ff-unitzh").value.trim();
       const err = $("ff-err");
-      const kcal = num($("ff-kcal").value);
+      const kcal = readEnergy($("ff-kcal"), f.kcal);
       if (zhUI ? !zh : !name) { err.hidden = false; err.textContent = t("errNameReq"); return; }
       if ($("ff-kcal").value.trim() === "" || !(kcal >= 0)) { err.hidden = false; err.textContent = t("errKcal"); return; }
       err.hidden = true;
@@ -1074,7 +1104,7 @@ button { cursor: pointer; }
       <form class="form" id="presetForm" novalidate>
         <div class="field"><label for="pf-name">${t("mealName")}</label><input id="pf-name" value="${esc(t("myMeal", slotName(slotId)))}"></div>
         <div class="field"><label for="pf-slot">${t("logToLbl")}</label><select id="pf-slot">${SLOTS.map((s) => `<option value="${s.id}"${s.id === slotId ? " selected" : ""}>${s[LANG]}</option>`).join("")}</select></div>
-        <div class="list full">${saved.map((e) => `<div class="li"><div class="t">${esc(ename(e))}<small>${esc(eunit(e))}</small></div><span class="k num">×${fmtQty(e.qty)}</span><span class="k num">${fmt(e.kcal * e.qty)}</span></div>`).join("")}</div>
+        <div class="list full">${saved.map((e) => `<div class="li"><div class="t">${esc(ename(e))}<small>${esc(eunit(e))}</small></div><span class="k num">×${fmtQty(e.qty)}</span><span class="k num">${eFmt(e.kcal * e.qty)}</span></div>`).join("")}</div>
         ${skipped ? `<p class="muted full">${t("skippedNote", skipped)}</p>` : ""}
         <p class="muted full" id="pf-err" hidden></p>
         <div class="sheet-actions full"><span class="spacer"></span><button type="button" class="btn" data-close>${t("cancel")}</button><button type="submit" class="btn primary"${saved.length ? "" : " disabled"}>${t("saveMeal")}</button></div>
@@ -1095,12 +1125,12 @@ button { cursor: pointer; }
     const foods = state.foods.slice().sort((a, b) => coll.compare(fname(a), fname(b)));
     openSheet(`${sheetHead(t("targetsFoods"))}
       <div class="sec-h">${t("dailyTargets")}</div>
-      <div class="list"><div class="li"><div class="t num">${t("trainingDay")} ${fmt(T.train.kcal)} kcal · ${t("restDay")} ${fmt(T.rest.kcal)} kcal<small>${t("trainDaysOn", trainDayList())}</small></div><span></span><button class="btn" id="editTargets">${t("edit")}</button></div></div>
+      <div class="list"><div class="li"><div class="t num">${t("trainingDay")} ${eFmt(T.train.kcal)} ${UNIT} · ${t("restDay")} ${eFmt(T.rest.kcal)} ${UNIT}<small>${t("trainDaysOn", trainDayList())}</small></div><span></span><button class="btn" id="editTargets">${t("edit")}</button></div></div>
       <div class="sec-h">${t("mealsSec")}</div>
       <div class="list">${state.presets.length ? state.presets.map((p) => { const s = presetKcal(p); return `<div class="li"><div class="t">${esc(p.name)}<small>${slotName(p.slot)} · ${(p.items || []).map((it) => { const f = foodById(it.food); return f ? esc(fname(f)) + " ×" + fmtQty(it.qty) : t("deletedPh"); }).join(LANG === "zh" ? "、" : ", ")}</small></div><span class="k num">${fmt(s.k)}</span><button class="btn danger" data-delpreset="${esc(p.id)}">${t("del")}</button></div>`; }).join("") : `<p class="muted">${t("noMealsShort")}</p>`}</div>
       <div class="sec-h">${t("foodsSec", state.foods.length)}</div>
       <div class="sheet-actions"><button class="btn" id="newFood">${t("newFood")}</button></div>
-      <div class="list">${foods.map((f) => `<div class="li"><div class="t">${esc(fname(f))}<small>${esc(funit(f))} · ${esc(catLabel(f.cat || "Other"))}</small></div><span class="k num">${fmt(f.kcal)} kcal</span><span class="li-acts"><button class="btn" data-editfood="${esc(f.id)}">${t("edit")}</button><button class="btn danger" data-delfood="${esc(f.id)}">${t("del")}</button></span></div>`).join("")}</div>`, "settings");
+      <div class="list">${foods.map((f) => `<div class="li"><div class="t">${esc(fname(f))}<small>${esc(funit(f))} · ${esc(catLabel(f.cat || "Other"))}</small></div><span class="k num">${eFmt(f.kcal)} ${UNIT}</span><span class="li-acts"><button class="btn" data-editfood="${esc(f.id)}">${t("edit")}</button><button class="btn danger" data-delfood="${esc(f.id)}">${t("del")}</button></span></div>`).join("")}</div>`, "settings");
     $("editTargets").addEventListener("click", () => openTargets(openSettings));
     $("newFood").addEventListener("click", () => openFoodForm("new", null, openSettings));
     $("sheet").querySelectorAll("[data-editfood]").forEach((b) => b.addEventListener("click", () => openFoodForm("edit", foodById(b.dataset.editfood), openSettings)));
@@ -1133,7 +1163,7 @@ button { cursor: pointer; }
     const block = (key) => `
       <div class="tcard${key === cur ? " cur" : ""}">
         <div class="tcard-h"><b>${key === "train" ? t("trainingDay") : t("restDay")}</b>${key === cur ? `<span class="tbadge">${t(state.date === todayStr() ? "todayBadge" : "thisDayBadge")}</span>` : ""}</div>
-        <label class="tk" for="t-${key}-kcal"><span>${t("calories")}</span><span class="tk-in"><input class="num" type="number" inputmode="numeric" min="0" id="t-${key}-kcal" value="${esc(T[key].kcal)}"> kcal</span></label>
+        <label class="tk" for="t-${key}-kcal"><span>${t("calories")}</span><span class="tk-in"><input class="num" type="number" inputmode="numeric" min="0" id="t-${key}-kcal" value="${esc(eInputVal(T[key].kcal))}" data-shown="${esc(eInputVal(T[key].kcal))}"> ${UNIT}</span></label>
         <div class="tm">${["p", "c", "f"].map((k) => `<label for="t-${key}-${k}"><span>${t(k === "p" ? "protein" : k === "c" ? "carbs" : "fat")}</span><span class="tk-in"><input class="num" type="number" inputmode="decimal" min="0" id="t-${key}-${k}" value="${esc(T[key][k])}"> g</span></label>`).join("")}</div>
         <p class="muted tsum num" id="t-${key}-sum"></p>
       </div>`;
@@ -1146,7 +1176,7 @@ button { cursor: pointer; }
         <div class="sheet-actions"><span class="spacer"></span><button type="button" class="btn" data-close>${t("cancel")}</button><button type="button" class="btn primary" id="saveTargets">${t("saveTargets")}</button></div>
       </div>`, "targets");
     const val = (key, k) => num($(`t-${key}-${k}`).value);
-    const upd = (key) => { $(`t-${key}-sum`).textContent = t("macroSum", fmt(4 * val(key, "p") + 4 * val(key, "c") + 9 * val(key, "f")), fmt(val(key, "kcal"))); };
+    const upd = (key) => { $(`t-${key}-sum`).textContent = t("macroSum", eFmt(4 * val(key, "p") + 4 * val(key, "c") + 9 * val(key, "f")), fmt(val(key, "kcal")), UNIT); };
     upd("train"); upd("rest");
     $("tgtWrap").addEventListener("input", (e) => { const m = (e.target.id || "").match(/^t-(train|rest)-/); if (m) upd(m[1]); });
     $("wd").addEventListener("click", (e) => {
@@ -1156,7 +1186,7 @@ button { cursor: pointer; }
       b.setAttribute("aria-pressed", String(days.includes(d)));
     });
     $("saveTargets").addEventListener("click", async () => {
-      const read = (key) => ({ kcal: val(key, "kcal"), p: val(key, "p"), c: val(key, "c"), f: val(key, "f") });
+      const read = (key) => ({ kcal: readEnergy($(`t-${key}-kcal`), T[key].kcal), p: val(key, "p"), c: val(key, "c"), f: val(key, "f") });
       const data = { train: read("train"), rest: read("rest"), trainDays: days.slice().sort() };
       if (!(data.train.kcal > 0) || !(data.rest.kcal > 0)) { $("t-err").hidden = false; $("t-err").textContent = t("errTargetKcal"); return; }
       try {
@@ -1194,7 +1224,7 @@ button { cursor: pointer; }
     if (sheetMode !== "history") return;
     $("sheet").innerHTML = `${sheetHead(t("last14"))}
       <div class="hist-sum">
-        <div class="stat"><small>${t("avgCal")}</small><b class="num">${logged7.length ? fmt(avgK) : "–"}</b> <small>${t("kcalDays", logged7.length)}</small></div>
+        <div class="stat"><small>${t("avgCal")}</small><b class="num">${logged7.length ? eFmt(avgK) : "–"}</b> <small>${t("kcalDays", logged7.length, UNIT)}</small></div>
         <div class="stat"><small>${t("avgP")}</small><b class="num">${logged7.length ? fmt(avgP) : "–"}</b> <small>g</small></div>
       </div>
       <p class="muted">${t("histNote")}</p>
@@ -1204,7 +1234,7 @@ button { cursor: pointer; }
         return `<button class="hrow" data-goto="${r.d}">
           <span class="d num">${shortDate(r.d)}<small>${r.type === "train" ? t("trainingDay") : t("restDay")}</small></span>
           <span class="hbar">${has ? `<i class="${over ? "over" : ""}" style="width:${(r.tot.kcal / max) * 100}%"></i>` : ""}<span class="tick" style="left:calc(${(r.tg.kcal / max) * 100}% - 1px)"></span></span>
-          <span class="v num">${has ? `<b>${fmt(r.tot.kcal)}</b><span>${fmt(r.tot.p)}g</span>` : `<small class="muted">${t("notLogged")}</small>`}</span>
+          <span class="v num">${has ? `<b>${eFmt(r.tot.kcal)}</b><span>${fmt(r.tot.p)}g</span>` : `<small class="muted">${t("notLogged")}</small>`}</span>
         </button>`;
       }).join("")}</div>`;
   }
@@ -1229,7 +1259,7 @@ button { cursor: pointer; }
   $("todayBtn").addEventListener("click", () => goDate(todayStr()));
   $("dtTrain").addEventListener("click", () => setDayType("train"));
   $("dtRest").addEventListener("click", () => setDayType("rest"));
-  $("slots").addEventListener("click", (e) => { const b = e.target.closest("[data-slot]"); if (b) { state.slot = b.dataset.slot; refreshOrder(); renderSlots(); renderFoods(); } });
+  $("slots").addEventListener("click", (e) => { const b = e.target.closest("[data-slot]"); if (b) { state.slot = b.dataset.slot; state.slotManual = true; refreshOrder(); renderSlots(); renderFoods(); } });
   $("presets").addEventListener("click", (e) => {
     if (!state.db) return;
     const rm = e.target.closest("[data-rmpreset]");
@@ -1276,12 +1306,30 @@ button { cursor: pointer; }
     }
   });
   $("log").addEventListener("change", (e) => { const i = e.target.closest("[data-qty]"); if (i) setQty(i.dataset.qty, num(i.value, 0)); });
-  $("facts").addEventListener("click", (e) => { if (e.target.closest("[data-edit-target]") && state.db) openTargets(); });
+  $("facts").addEventListener("click", (e) => {
+    const u = e.target.closest("[data-unit]");
+    if (u) {
+      if (u.dataset.unit !== UNIT) {
+        UNIT = u.dataset.unit;
+        try { localStorage.setItem("dietlog.unit", UNIT); } catch (err) {}
+        render();
+      }
+      return;
+    }
+    if (e.target.closest("[data-edit-target]") && state.db) openTargets();
+  });
   $("openHistory").addEventListener("click", () => { if (state.db) openHistory(); });
   $("openSettings").addEventListener("click", () => { if (state.db) openSettings(); });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden" && (dirty || flushTimer)) flush();
-    if (document.visibilityState === "visible" && state.recentLoaded) { refreshOrder(); renderFoods(); }
+    if (document.visibilityState === "visible") {
+      // coming back to the page later: follow the clock again unless a meal was picked by hand
+      if (state.date === todayStr() && !state.slotManual) {
+        const s = autoSlot();
+        if (s !== state.slot) { state.slot = s; renderSlots(); renderFoods(); }
+      }
+      if (state.recentLoaded) { refreshOrder(); renderFoods(); }
+    }
   });
 
   /* ---------- weekly ranking: times logged in the last 7 days, ties alphabetical (pinyin in Chinese) ---------- */
