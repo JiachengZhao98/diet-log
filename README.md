@@ -51,7 +51,7 @@ The page updates locally first, then about 400 ms later writes the whole day doc
 
 `seed/` holds JSON exports of the food list, saved meals and targets, keyed by document id. Nutrition values come from package labels where available and typical values otherwise.
 
-- `seed/foods.json`: 34 foods, each with English and Chinese names
+- `seed/foods.json`: 35 foods, each with English and Chinese names
 - `seed/presets.json`: 2 saved meals, 海鲜拉面 and 咖喱海鲜饭, both for dinner
 - `seed/settings.json`: training days 2,200 kcal / 145 g protein, rest days 1,900 kcal / 135 g protein; Thursday and Sunday are training days
 

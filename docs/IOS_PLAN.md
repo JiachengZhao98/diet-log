@@ -292,7 +292,7 @@ xcodebuild -project DietLog.xcodeproj -scheme DietLog \
 | # | 内容 | 完成标准 |
 | --- | --- | --- |
 | M0 | 环境与骨架：`project.yml`、App 入口、空的几个页面、Makefile、`ios/CLAUDE.md` | `make build` 通过，模拟器能打开 App |
-| M1 | 数据层：第 4 节的模型、Targets 单例、种子导入、`Logic/` 和单元测试 | `make test` 全绿；首次启动导入 34 样食物和 2 个套餐 |
+| M1 | 数据层：第 4 节的模型、Targets 单例、种子导入、`Logic/` 和单元测试 | `make test` 全绿；首次启动导入 35 样食物和 2 个套餐 |
 | M2 | 今日页：营养成分表、餐次、食物网格加减、记录列表、撤销 | 在模拟器里能完整记一天 |
 | M3 | 管理：新增 / 编辑 / 删除食物、一次性记录、套餐、改目标页 | 网页版这些功能在 App 里都能用 |
 | M4 | 近 14 天 + 图表 | 数字和网页版算法一致 |

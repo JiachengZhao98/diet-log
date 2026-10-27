@@ -406,5 +406,17 @@
     "unit": "10 pieces · large 31/40",
     "unit_zh": "10 只",
     "zh": "大虾（31/40）"
+  },
+  "chicken-salad-croissant": {
+    "c": 34,
+    "cat": "Eating Out",
+    "f": 34,
+    "kcal": 540,
+    "name": "Kroger Private Selection Chicken Salad Croissant",
+    "p": 23,
+    "sort": 630,
+    "unit": "1 sandwich",
+    "unit_zh": "1 个",
+    "zh": "Kroger 鸡肉沙拉可颂三明治"
   }
 }
