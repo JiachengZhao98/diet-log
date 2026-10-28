@@ -275,7 +275,17 @@ button { cursor: pointer; }
   display: flex; flex-direction: column; gap: 14px;
 }
 @media (min-width: 640px) { .overlay { align-items: center; } .sheet { border-radius: 14px; padding-bottom: 20px; } }
-.sheet-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+/* the header stays pinned while the sheet scrolls, so Done is always reachable */
+.sheet-h {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  position: sticky; top: -16px; z-index: 2; background: var(--paper);
+  margin: -16px calc(-1 * max(16px, env(safe-area-inset-right, 0px))) 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) 6px max(16px, env(safe-area-inset-left, 0px));
+}
+/* Done replaces × while a text or number field has the keyboard up */
+.kb-done { display: none; border-radius: 999px; padding: 8px 18px; }
+body.typing .sheet-h .kb-done { display: inline-flex; }
+body.typing .sheet-h [data-close] { display: none; }
 .sheet-h h3 { margin: 0; font-size: 20px; font-weight: 900; font-stretch: 80%; }
 .form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .form .full { grid-column: 1 / -1; }
@@ -951,7 +961,7 @@ button { cursor: pointer; }
     $("sheet").innerHTML = html;
     $("overlay").hidden = false;
     const coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
-    const first = $("sheet").querySelector("input, select, button.btn");
+    const first = $("sheet").querySelector("input, select, button.btn:not(.kb-done)");
     setTimeout(() => {
       if (!coarse && first && mode !== "history") first.focus({ preventScroll: true });
       else $("sheet").focus({ preventScroll: true });
@@ -963,7 +973,7 @@ button { cursor: pointer; }
   }
   $("overlay").addEventListener("click", (e) => { if (e.target === $("overlay")) { returnTo = null; closeSheet(); } });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("overlay").hidden) { returnTo = null; closeSheet(); } });
-  const sheetHead = (title) => `<div class="sheet-h"><h3>${esc(title)}</h3><button class="iconbtn" data-close aria-label="${t("close")}">×</button></div>`;
+  const sheetHead = (title) => `<div class="sheet-h"><h3>${esc(title)}</h3><button type="button" class="btn primary kb-done" data-kbdone>${t("done")}</button><button type="button" class="iconbtn" data-close aria-label="${t("close")}">×</button></div>`;
   const catOptions = (sel) => CATS.map((c) => `<option value="${esc(c)}"${c === sel ? " selected" : ""}>${esc(catLabel(c))}</option>`).join("");
 
   // food form: mode "new" | "edit" | "once"
@@ -1254,6 +1264,24 @@ button { cursor: pointer; }
     const g = e.target.closest("[data-goto]");
     if (g) { returnTo = null; closeSheet(); goDate(g.dataset.goto); }
   });
+  /* ---------- on-screen keyboard ---------- */
+  // The iPhone number pad has no return key, and the Claude app hides Safari's Done bar,
+  // so sheets show a Done button while a field is being typed in, and tapping any
+  // blank area (not a button, link, label or field) also puts the keyboard away.
+  const isTextField = (el) => !!el && typeof el.matches === "function" &&
+    el.matches("textarea, input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset])");
+  const syncTyping = () => document.body.classList.toggle("typing", isTextField(document.activeElement));
+  const dismissKeyboard = () => { const a = document.activeElement; if (isTextField(a)) a.blur(); syncTyping(); };
+  document.addEventListener("focusin", syncTyping);
+  document.addEventListener("focusout", () => setTimeout(syncTyping, 0));
+  document.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("[data-kbdone]")) { e.preventDefault(); return; } // keep the field focused until the click lands
+    if (!isTextField(document.activeElement)) return;
+    if (e.target.closest("input, textarea, select, button, a, label")) return;
+    dismissKeyboard();
+  });
+  document.addEventListener("click", (e) => { if (e.target.closest("[data-kbdone]")) dismissKeyboard(); });
+
   $("prevDay").addEventListener("click", () => goDate(shiftDate(state.date, -1)));
   $("nextDay").addEventListener("click", () => { if (state.date < todayStr()) goDate(shiftDate(state.date, 1)); });
   $("todayBtn").addEventListener("click", () => goDate(todayStr()));

@@ -246,6 +246,7 @@ xcodebuild -project DietLog.xcodeproj -scheme DietLog \
 - 当前界面语言的名字必填，另一种语言选填。
 - 另一种语言留空时，用 Translation 框架（`TranslationSession`）自动翻译名字和份量。品牌名、数字和单位保持原样；翻译失败照样保存，提示之后可以补。
 - 热量可以填 0（零卡饮料），但不能空着。
+- 数字键盘没有回车键：用 `.toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("完成") { … } } }` 在键盘上方放「完成」，配合 `@FocusState` 收起键盘；可滚动的表单再加 `.scrollDismissesKeyboard(.interactively)`。改目标页同样适用。
 
 **改目标页**：
 
