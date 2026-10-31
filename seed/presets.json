@@ -31,7 +31,6 @@
       }
     ],
     "name": "海鲜拉面",
-    "slot": "d",
     "sort": 900
   },
   "p-mvpskmkpiov4": {
@@ -70,7 +69,36 @@
       }
     ],
     "name": "咖喱海鲜饭",
-    "slot": "d",
     "sort": 901
+  },
+  "p-mvr120f8nifb": {
+    "items": [
+      {
+        "food": "beef",
+        "qty": 2
+      },
+      {
+        "food": "pasta",
+        "qty": 1
+      },
+      {
+        "food": "sprite-zero",
+        "qty": 1
+      },
+      {
+        "food": "onion",
+        "qty": 1
+      },
+      {
+        "food": "oil",
+        "qty": 0.5
+      },
+      {
+        "food": "egg",
+        "qty": 2
+      }
+    ],
+    "name": "Onion beef",
+    "sort": 902
   }
 }

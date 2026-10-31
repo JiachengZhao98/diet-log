@@ -6,7 +6,7 @@ The live version is a private claude.ai Artifact; its data lives in the Artifact
 
 ## Features
 
-- **Tap to log**: pick Breakfast, Lunch, Dinner or Snack, then tap foods. Each tap adds one serving, and each tile has − / + buttons with the current count. A saved meal logs every item at once into its own slot.
+- **Tap to log**: pick Breakfast, Lunch, Dinner or Snack, then tap foods. Each tap adds one serving, and each tile has − / + buttons with the current count. A saved meal is just a list of foods: tapping it logs every item at once into whichever meal is selected.
 - **Meal picked by the clock**: on open, the meal is chosen from the device's local time (the user's time zone): 05:00–11:30 Breakfast, 11:30–16:30 Lunch, 16:30–21:00 Dinner, 21:00–05:00 Snack. Coming back to the page later re-picks by time, unless a meal was chosen by hand.
 - **Ranked by habit**: food tiles are ordered by how many times each was logged in the last 7 days; ties are alphabetical (pinyin order in Chinese). The order refreshes on load and when you switch meal or category, not while you tap.
 - **Undo and edit**: every action can be undone. In the log you can change servings (decimals work, e.g. 0.9 of a pasta serving), delete an item, or clear a whole meal.
@@ -36,7 +36,7 @@ The live version is a private claude.ai Artifact; its data lives in the Artifact
 | Path | Contents |
 | --- | --- |
 | `foods/{id}` | A food: `name` / `zh` (English / Chinese name), `unit` / `unit_zh` (serving size), `kcal`, `p`, `c`, `f`, `cat`, `sort` |
-| `presets/{id}` | A saved meal: `name`, `slot` (`b`/`l`/`d`/`s`), `items: [{food, qty}]`, `sort` |
+| `presets/{id}` | A saved meal: `name`, `items: [{food, qty}]`, `sort`. It is not tied to a meal; it logs into the selected one |
 | `settings/targets` | `train` and `rest` targets (`kcal`, `p`, `c`, `f`) and `trainDays` (0 = Sunday) |
 | `days/{YYYY-MM-DD}` | One document per day: `dayType` (`train`, `rest`, or `null` for the weekday default) and an `entries` array |
 
@@ -53,7 +53,7 @@ The page updates locally first, then about 400 ms later writes the whole day doc
 `seed/` holds JSON exports of the food list, saved meals and targets, keyed by document id. Nutrition values come from package labels where available and typical values otherwise.
 
 - `seed/foods.json`: 35 foods, each with English and Chinese names
-- `seed/presets.json`: 2 saved meals, 海鲜拉面 and 咖喱海鲜饭, both for dinner
+- `seed/presets.json`: 3 saved meals: 海鲜拉面, 咖喱海鲜饭 and Onion beef
 - `seed/settings.json`: training days 2,200 kcal / 145 g protein, rest days 1,900 kcal / 135 g protein; Thursday and Sunday are training days
 
 Daily logs (`days/`) are not included in this repository.

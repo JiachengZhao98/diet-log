@@ -154,9 +154,8 @@ xcodebuild -project DietLog.xcodeproj -scheme DietLog \
     var createdAt: Date = Date()
 }
 
-@Model final class MealPreset {     // 套餐
+@Model final class MealPreset {     // 套餐：只存吃了什么，不绑定餐次
     var name: String = ""
-    var slot: String = "s"
     var sort: Int = 999
     @Relationship(deleteRule: .cascade, inverse: \PresetItem.preset)
     var items: [PresetItem]? = []
@@ -199,7 +198,7 @@ xcodebuild -project DietLog.xcodeproj -scheme DietLog \
 
 1. 把 `seed/foods.json`、`seed/presets.json` 和 `seed/settings.json` 放进 App 的资源目录；首次启动时导入。按 `key` 去重，重复启动不会导入第二遍。
    - 食物字段对应：`name`→`nameEn`，`zh`→`nameZh`，`unit`→`unitEn`，`unit_zh`→`unitZh`，`p/c/f`→`protein/carbs/fat`，`cat`→`category`。
-   - 套餐：现在有 2 个（海鲜拉面、咖喱海鲜饭），`items[].food` 对应 `Food.key`。导入成 `MealPreset` + `PresetItem`。
+   - 套餐：现在有 3 个（海鲜拉面、咖喱海鲜饭、Onion beef），`items[].food` 对应 `Food.key`。导入成 `MealPreset` + `PresetItem`。
 2. 历史饮食记录不在仓库里。需要的话，在 claude.ai 里让 Claude 把网页版数据库的 `days` 集合导出成 JSON，存为 `seed/days.json`，再写一个导入器：把每天的 `entries` 数组拆成一行行 `Entry`，`dayType` 不为空的写进 `DayInfo`。
 
 ---
@@ -217,7 +216,7 @@ xcodebuild -project DietLog.xcodeproj -scheme DietLog \
    - 21:00 – 次日 05:00：加餐
    - 用户手动点了某一餐，就保持手动选择；App 从后台回到前台时，没手动选过才按当前时间重选（监听 `scenePhase` 变为 `.active`）。
    - 切回「今天」时重新按时间选，并清掉「手动选过」的标记。
-4. 套餐：横向标签，点一下把整顿记到它自己的那一餐；管理模式下点两次删除。
+4. 套餐：横向标签，点一下把整顿记到当前选中的那一餐（套餐只存吃了什么，不绑定早 / 午 / 晚 / 加餐）；管理模式下点两次删除。
 5. 食物网格：
    - 分类标签和搜索框，搜索同时匹配中英文名和份量。
    - 每格显示名称、份量、「本周 N 次」、kcal 和蛋白，下面一行是 − 数量 +。
@@ -293,7 +292,7 @@ xcodebuild -project DietLog.xcodeproj -scheme DietLog \
 | # | 内容 | 完成标准 |
 | --- | --- | --- |
 | M0 | 环境与骨架：`project.yml`、App 入口、空的几个页面、Makefile、`ios/CLAUDE.md` | `make build` 通过，模拟器能打开 App |
-| M1 | 数据层：第 4 节的模型、Targets 单例、种子导入、`Logic/` 和单元测试 | `make test` 全绿；首次启动导入 35 样食物和 2 个套餐 |
+| M1 | 数据层：第 4 节的模型、Targets 单例、种子导入、`Logic/` 和单元测试 | `make test` 全绿；首次启动导入 35 样食物和 3 个套餐 |
 | M2 | 今日页：营养成分表、餐次、食物网格加减、记录列表、撤销 | 在模拟器里能完整记一天 |
 | M3 | 管理：新增 / 编辑 / 删除食物、一次性记录、套餐、改目标页 | 网页版这些功能在 App 里都能用 |
 | M4 | 近 14 天 + 图表 | 数字和网页版算法一致 |
